@@ -1,4 +1,4 @@
-/*! Checkboxes 1.0.0
+/*! Checkboxes 1.0.1
  *  Copyright (c) Gyrocode (www.gyrocode.com)
  *  License: MIT License
  */
@@ -6,7 +6,7 @@
 /**
  * @summary     Checkboxes
  * @description Checkboxes extension for jQuery DataTables
- * @version     1.0.0
+ * @version     1.0.1
  * @file        dataTables.checkboxes.js
  * @author      Gyrocode (http://www.gyrocode.com/projects/jquery-datatables-checkboxes/)
  * @contact     http://www.gyrocode.com/contacts
@@ -646,7 +646,7 @@ $.fn.dataTable.Checkboxes = Checkboxes;
 
 // Attach a listener to the document which listens for DataTables initialisation
 // events so we can automatically initialise
-$(document).on( 'init.dt.dtr', function (e, settings, json) {
+$(document).on( 'preInit.dt.dtr', function (e, settings, json) {
    if ( e.namespace !== 'dt' ) {
       return;
    }
