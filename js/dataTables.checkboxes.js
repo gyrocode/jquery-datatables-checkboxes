@@ -189,9 +189,11 @@ Checkboxes.prototype = {
                         type: ($row.hasClass('selected') ? 'deselect' : 'select')
                      };
 
-                     self.onSelect(e, 'rows', [dt.row($row).index()]);
+                     self.onSelect(e, 'row', [dt.row($row).index()]);
 
                      $row.toggleClass('selected');
+
+                     $table.trigger(e.type);
                   });
                }
 
@@ -305,11 +307,11 @@ Checkboxes.prototype = {
             // If Checkboxes extension is enabled
             // and row selection is enabled for this column
             if(ctx.aoColumns[colIdx].checkboxes && ctx.aoColumns[colIdx].checkboxes.selectRow){
-               nodes.push(dt.$(this.node()).closest('tr'));
+               nodes.push(dt.$(this.node()).closest('tr').get(0));
             }
          });
       }
-
+      
       if(nodes.length){
          // If Select extension is available
          if(DataTable.select){
