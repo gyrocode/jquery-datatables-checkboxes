@@ -161,9 +161,11 @@ Checkboxes.prototype = {
             // EVENT HANDLERS
             //
             var $table = $(dt.table().node());
+            var $table_body = $(dt.table().body());
+            var $table_header = $(dt.table().header());
 
             // Handles checkbox click event
-            $('tbody', $table).on('click', 'input[type="checkbox"]', function(e){
+            $table_body.on('click', 'input[type="checkbox"]', function(e){
                self.onClick(e, this);
             });
 
@@ -178,7 +180,7 @@ Checkboxes.prototype = {
 
                // Otherwise, if Select extension is not available
                } else {
-                  $('tbody', $table).on('click', 'td', function(){
+                  $table_body.on('click', 'td', function(){
                      var $row = $(this).closest('tr');
                      var e = {
                         type: ($row.hasClass('selected') ? 'deselect' : 'select')
@@ -197,12 +199,12 @@ Checkboxes.prototype = {
             });
 
             // Handle click on "Select all" control
-            $('thead', $table).on('click', 'th.checkboxes-select-all input[type="checkbox"]', function(e){
+            $table_header.on('click', 'th.checkboxes-select-all input[type="checkbox"]', function(e){
                self.onClickSelectAll(e, this);
             });
 
             // Handle click on heading containing "Select all" control
-            $('thead', $table).on('click', 'th.checkboxes-select-all', function(e) {
+            $table_header.on('click', 'th.checkboxes-select-all', function(e) {
                $('input[type="checkbox"]', this).trigger('click');
             });
          }
@@ -431,7 +433,7 @@ Checkboxes.prototype = {
          ),
          search: 'applied'
       });
-
+      console.log(ctrl, dt, cells, cells.nodes());
       self.updateData('cell', cells.nodes(), ctrl.checked);
       self.updateCheckbox('cell', cells.nodes(), ctrl.checked);
 
