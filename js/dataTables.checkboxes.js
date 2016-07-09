@@ -1,4 +1,4 @@
-/*! Checkboxes 1.0.2
+/*! Checkboxes 1.0.3
  *  Copyright (c) Gyrocode (www.gyrocode.com)
  *  License: MIT License
  */
@@ -6,7 +6,7 @@
 /**
  * @summary     Checkboxes
  * @description Checkboxes extension for jQuery DataTables
- * @version     1.0.2
+ * @version     1.0.3
  * @file        dataTables.checkboxes.js
  * @author      Gyrocode (http://www.gyrocode.com/projects/jquery-datatables-checkboxes/)
  * @contact     http://www.gyrocode.com/contacts
@@ -178,6 +178,9 @@ Checkboxes.prototype = {
                      self.onSelect(e, type, indexes);
                   });
 
+                  // Disable Select extension information display
+                  dt.select.info(false);
+
                // Otherwise, if Select extension is not available
                } else {
                   $table_body.on('click', 'td', function(){
@@ -191,6 +194,11 @@ Checkboxes.prototype = {
                      $row.toggleClass('selected');
                   });
                }
+
+               // Update the table information element with selected item summary
+               $table.on('draw.dt select.dt deselect.dt', function (){
+                  self.showInfoSelected();
+               });
             }
 
             // Handle table draw event
@@ -539,7 +547,59 @@ Checkboxes.prototype = {
             }
          }
       }
+   },
+
+   // Updates the information element of the DataTable showing information about the
+   // items selected. Based on info() method of Select extension.
+   showInfoSelected: function(){
+      var self = this;
+      var dt = self.s.dt;
+      var ctx = dt.settings()[0];
+
+      if ( ! ctx.aanFeatures.i ) {
+         return;
+      }
+
+      var $output  = $('<span class="select-info"/>');
+      var add = function(name, num){
+         $output.append( $('<span class="select-item"/>').append( dt.i18n(
+            'select.'+name+'s',
+            { _: '%d '+name+'s selected', 0: '', 1: '1 '+name+' selected' },
+            num
+         ) ) );
+      };
+
+      // Find index of the first column that has checkbox and row selection enabled
+      var colSelectRowIdx = -1;
+      for(var colIdx = 0; colIdx < ctx.aoColumns.length; colIdx++){
+         // If Checkboxes extension is enabled
+         // and row selection is enabled for this column
+         if(ctx.aoColumns[colIdx].checkboxes && ctx.aoColumns[colIdx].checkboxes.selectRow){
+            colSelectRowIdx = colIdx;
+            break;
+         }
+      }
+
+      // If there is a column that has checkbox and row selection enabled
+      if(colSelectRowIdx !== -1){
+         add('row', ctx.checkboxes.s.data[colSelectRowIdx].length);
+
+         // Internal knowledge of DataTables to loop over all information elements
+         $.each( ctx.aanFeatures.i, function ( i, el ) {
+            var $el = $(el);
+
+            var $exisiting = $el.children('span.select-info');
+            if($exisiting.length){
+               $exisiting.remove();
+            }
+
+            if($output.text() !== ''){
+               $el.append($output);
+            }
+         });
+      }
    }
+
 };
 
 
