@@ -1,4 +1,4 @@
-/*! Checkboxes 1.0.3
+/*! Checkboxes 1.0.4
  *  Copyright (c) Gyrocode (www.gyrocode.com)
  *  License: MIT License
  */
@@ -6,7 +6,7 @@
 /**
  * @summary     Checkboxes
  * @description Checkboxes extension for jQuery DataTables
- * @version     1.0.3
+ * @version     1.0.4
  * @file        dataTables.checkboxes.js
  * @author      Gyrocode (http://www.gyrocode.com/projects/jquery-datatables-checkboxes/)
  * @contact     http://www.gyrocode.com/contacts
@@ -219,11 +219,6 @@ Checkboxes.prototype = {
             });
          }
       }
-
-      // WORKAROUND: Adjust column sizes and redraw table
-      dt
-         .columns.adjust()
-         .draw(false);
    },
 
    // Updates array holding data for selected checkboxes
