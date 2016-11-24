@@ -1,4 +1,4 @@
-/*! Checkboxes 1.0.4
+/*! Checkboxes 1.1.0-dev
  *  Copyright (c) Gyrocode (www.gyrocode.com)
  *  License: MIT License
  */
@@ -6,7 +6,7 @@
 /**
  * @summary     Checkboxes
  * @description Checkboxes extension for jQuery DataTables
- * @version     1.0.4
+ * @version     1.1.0-dev
  * @file        dataTables.checkboxes.js
  * @author      Gyrocode (http://www.gyrocode.com/projects/jquery-datatables-checkboxes/)
  * @contact     http://www.gyrocode.com/contacts
@@ -78,12 +78,16 @@ Checkboxes.prototype = {
       var self = this;
       var dt = self.s.dt;
       var ctx = dt.settings()[0];
+      var hasCheckboxes = false;
+      var hasCheckboxesSelectRow = false;
 
       for(var i = 0; i < ctx.aoColumns.length; i++){
          if (ctx.aoColumns[i].checkboxes){
             //
             // INITIALIZATION
             //
+
+            hasCheckboxes = true;
 
             if(!$.isPlainObject(ctx.aoColumns[i].checkboxes)){
                ctx.aoColumns[i].checkboxes = {};
@@ -108,7 +112,7 @@ Checkboxes.prototype = {
                   'className': 'dt-body-center',
                   'render': function (data, type, full, meta){
                      if(type === 'display'){
-                        data = '<input type="checkbox">';
+                        data = '<input type="checkbox" class="dt-checkboxes">';
                      }
                      return data;
                   }
@@ -147,77 +151,82 @@ Checkboxes.prototype = {
             //
 
             if(ctx.aoColumns[i].checkboxes.selectRow){
-               $(dt.table().node()).addClass('checkboxes-select');
+               hasCheckboxesSelectRow = true;
+
+               $(dt.table().node()).addClass('dt-checkboxes-select');
             }
 
             if(ctx.aoColumns[i].checkboxes.selectAll){
                $(dt.column(i).header())
                   .html('<input type="checkbox">')
-                  .addClass('checkboxes-select-all');
+                  .addClass('dt-checkboxes-select-all');
             }
+         }
+      }
 
 
-            //
-            // EVENT HANDLERS
-            //
-            var $table = $(dt.table().node());
-            var $table_body = $(dt.table().body());
-            var $table_header = $(dt.table().header());
+      // If table has at least one checkbox
+      if(hasCheckboxes){
+         //
+         // EVENT HANDLERS
+         //
+         var $table = $(dt.table().node());
+         var $table_body = $(dt.table().body());
+         var $table_header = $(dt.table().header());
 
-            // Handles checkbox click event
-            $table_body.on('click', 'input[type="checkbox"]', function(e){
-               self.onClick(e, this);
-            });
+         // Handles checkbox click event
+         $table_body.on('click', 'input.dt-checkboxes', function(e){
+            self.onClick(e, this);
+         });
 
-            // Handle row select/deselect event
-            if(ctx.aoColumns[i].checkboxes.selectRow){
-               // If Select extension is available
-               if(DataTable.select){
-                  // Handle row selection event
-                  $table.on('select.dt deselect.dt', function(e, api, type, indexes){
-                     self.onSelect(e, type, indexes);
-                  });
+         // Handle row select/deselect event
+         if(hasCheckboxesSelectRow){
+            // If Select extension is available
+            if(DataTable.select){
+               // Handle row selection event
+               $table.on('select.dt deselect.dt', function(e, api, type, indexes){
+                  self.onSelect(e, type, indexes);
+               });
 
-                  // Disable Select extension information display
-                  dt.select.info(false);
+               // Disable Select extension information display
+               dt.select.info(false);
 
-               // Otherwise, if Select extension is not available
-               } else {
-                  $table_body.on('click', 'td', function(){
-                     var $row = $(this).closest('tr');
-                     var e = {
-                        type: ($row.hasClass('selected') ? 'deselect' : 'select')
-                     };
+            // Otherwise, if Select extension is not available
+            } else {
+               $table_body.on('click', 'td', function(){
+                  var $row = $(this).closest('tr');
+                  var e = {
+                     type: ($row.hasClass('selected') ? 'deselect' : 'select')
+                  };
 
-                     self.onSelect(e, 'row', [dt.row($row).index()]);
+                  self.onSelect(e, 'row', [dt.row($row).index()]);
 
-                     $row.toggleClass('selected');
+                  $row.toggleClass('selected');
 
-                     $table.trigger(e.type);
-                  });
-               }
-
-               // Update the table information element with selected item summary
-               $table.on('draw.dt select.dt deselect.dt', function (){
-                  self.showInfoSelected();
+                  $table.trigger(e.type);
                });
             }
 
-            // Handle table draw event
-            $table.on('draw.dt', function(e, ctx){
-               self.onDraw(e, ctx);
-            });
-
-            // Handle click on "Select all" control
-            $table_header.on('click', 'th.checkboxes-select-all input[type="checkbox"]', function(e){
-               self.onClickSelectAll(e, this);
-            });
-
-            // Handle click on heading containing "Select all" control
-            $table_header.on('click', 'th.checkboxes-select-all', function(e) {
-               $('input[type="checkbox"]', this).trigger('click');
+            // Update the table information element with selected item summary
+            $table.on('draw.dt select.dt deselect.dt', function (){
+               self.showInfoSelected();
             });
          }
+
+         // Handle table draw event
+         $table.on('draw.dt', function(e, ctx){
+            self.onDraw(e, ctx);
+         });
+
+         // Handle click on "Select all" control
+         $table_header.on('click', 'th.dt-checkboxes-select-all input[type="checkbox"]', function(e){
+            self.onClickSelectAll(e, this);
+         });
+
+         // Handle click on heading containing "Select all" control
+         $table_header.on('click', 'th.dt-checkboxes-select-all', function(e) {
+            $('input[type="checkbox"]', this).trigger('click');
+         });
       }
    },
 
@@ -306,7 +315,7 @@ Checkboxes.prototype = {
             }
          });
       }
-      
+
       if(nodes.length){
          // If Select extension is available
          if(DataTable.select){

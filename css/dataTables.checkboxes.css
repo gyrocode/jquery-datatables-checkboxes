@@ -1,5 +1,5 @@
-table.dataTable.checkboxes-select tbody tr,
-table.dataTable thead .checkboxes-select-all {
+table.dataTable.dt-checkboxes-select tbody tr,
+table.dataTable thead .dt-checkboxes-select-all {
   cursor: pointer;
 }
 
