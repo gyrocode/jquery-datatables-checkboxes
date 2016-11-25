@@ -159,7 +159,8 @@ Checkboxes.prototype = {
             if(ctx.aoColumns[i].checkboxes.selectAll){
                $(dt.column(i).header())
                   .html('<input type="checkbox">')
-                  .addClass('dt-checkboxes-select-all');
+                  .addClass('dt-checkboxes-select-all')
+                  .attr('data-col', i);
             }
          }
       }
@@ -167,15 +168,17 @@ Checkboxes.prototype = {
 
       // If table has at least one checkbox
       if(hasCheckboxes){
+
          //
          // EVENT HANDLERS
          //
+
          var $table = $(dt.table().node());
-         var $table_body = $(dt.table().body());
-         var $table_header = $(dt.table().header());
+         var $tableBody = $(dt.table().body());
+         var $tableContainer = $(dt.table().container());
 
          // Handles checkbox click event
-         $table_body.on('click', 'input.dt-checkboxes', function(e){
+         $tableBody.on('click', 'input.dt-checkboxes', function(e){
             self.onClick(e, this);
          });
 
@@ -193,7 +196,7 @@ Checkboxes.prototype = {
 
             // Otherwise, if Select extension is not available
             } else {
-               $table_body.on('click', 'td', function(){
+               $tableContainer.on('click', 'tbody td', function(){
                   var $row = $(this).closest('tr');
                   var e = {
                      type: ($row.hasClass('selected') ? 'deselect' : 'select')
@@ -219,12 +222,12 @@ Checkboxes.prototype = {
          });
 
          // Handle click on "Select all" control
-         $table_header.on('click', 'th.dt-checkboxes-select-all input[type="checkbox"]', function(e){
+         $tableContainer.on('click', 'thead th.dt-checkboxes-select-all input[type="checkbox"]', function(e){
             self.onClickSelectAll(e, this);
          });
 
          // Handle click on heading containing "Select all" control
-         $table_header.on('click', 'th.dt-checkboxes-select-all', function(e) {
+         $tableContainer.on('click', 'thead th.dt-checkboxes-select-all', function(e) {
             $('input[type="checkbox"]', this).trigger('click');
          });
       }
@@ -251,9 +254,10 @@ Checkboxes.prototype = {
       } else if(type === 'cell'){
          nodes = dt.cells(selector).nodes();
 
-         dt.cells(nodes).every(function () {
-            var colIdx = this.index().column;
-            var rowIdx = this.index().row;
+         $.each(nodes, function(){
+            var cellIdx = self.getCellIndex(this);
+            var colIdx = cellIdx.column;
+            var rowIdx = cellIdx.row;
 
             // If Checkboxes extension is enabled
             // and row selection is enabled for this column
@@ -304,14 +308,17 @@ Checkboxes.prototype = {
          nodes = dt.rows(selector).nodes();
 
       } else if(type === 'cell'){
-         dt.cells(selector).every(function () {
-            var colIdx = this.index().column;
-            var rowIdx = this.index().row;
+         var cellNodes = dt.cells(selector).nodes();
+
+         $.each(cellNodes, function(){
+            var cellIdx = self.getCellIndex(this);
+            var colIdx = cellIdx.column;
+            var rowIdx = cellIdx.row;
 
             // If Checkboxes extension is enabled
             // and row selection is enabled for this column
             if(ctx.aoColumns[colIdx].checkboxes && ctx.aoColumns[colIdx].checkboxes.selectRow){
-               nodes.push(dt.$(this.node()).closest('tr').get(0));
+               nodes.push(dt.$(this).closest('tr').get(0));
             }
          });
       }
@@ -361,26 +368,32 @@ Checkboxes.prototype = {
       } else if(type === 'cell'){
          nodes = dt.cells(selector).nodes();
 
-         dt.cells(nodes).every(function(){
-            var colIdx = this.index().column;
-            var rowIdx = this.index().row;
+         $.each(nodes, function(){
+            var cellIdx = self.getCellIndex(this);
+            var colIdx = cellIdx.column;
+            var rowIdx = cellIdx.row;
 
             // If Checkboxes extension is enabled
             // and row selection is enabled for this column
             if(ctx.aoColumns[colIdx].checkboxes && ctx.aoColumns[colIdx].checkboxes.selectRow){
                // Get list of columns other than this cell's column
                // where Checkboxes extension is enabled
-               var columns = $.grep(self.s.columns, function(value){ return value != colIdx; });
+               // and row selection is enabled
+               var columns = $.grep(self.s.columns, function(value){
+                  return (value != colIdx) && ctx.aoColumns[value].checkboxes.selectRow;
+               });
 
-               // Add cells from other columns
-               $.merge(nodes, dt.cells(rowIdx, columns).nodes());
+               // If there are other columns
+               if(columns.length){
+                  // Add cells from other columns
+                  $.merge(nodes, dt.cells(rowIdx, columns).nodes());
+               }
             }
          });
       }
 
-
       if(nodes.length){
-         dt.$(nodes).find('input[type="checkbox"]').prop('checked', isSelected);
+         dt.$(nodes).find('input.dt-checkboxes').prop('checked', isSelected);
       }
    },
 
@@ -393,21 +406,17 @@ Checkboxes.prototype = {
 
       // Get cell
       var $cell = $(ctrl).closest('td');
-      var cell = dt.cell($cell);
 
-      // REPLACE: dt.cells($cell).checkbox.select()
+      // TODO: Possibly replace with dt.cells($cell).checkbox.select()
 
       // Get cell's column index
-      var cellCol = cell.index().column;
-
-      // Get cell data
-      var cellData = cell.data();
+      var cellIdx = self.getCellIndex($cell);
 
       // If Checkboxes extension is enabled for this column
-      if(ctx.aoColumns[cellCol].checkboxes){
-         self.updateCheckbox('cell', $cell, ctrl.checked);
-         self.updateData('cell', $cell, ctrl.checked);
-         self.updateSelect('cell', $cell, ctrl.checked);
+      if(ctx.aoColumns[cellIdx.column].checkboxes){
+         self.updateCheckbox('cell', cellIdx, ctrl.checked);
+         self.updateData('cell', cellIdx, ctrl.checked);
+         self.updateSelect('cell', cellIdx, ctrl.checked);
          self.updateSelectAll();
 
          // Prevent click event from propagating to parent
@@ -437,7 +446,16 @@ Checkboxes.prototype = {
       var ctx = dt.settings()[0];
 
       // Calculate column index
-      var col = dt.column($(ctrl).closest('th')).index();
+      var col = null;
+      var $th = $(ctrl).closest('th');
+
+      // If column is fixed using FixedColumns extension
+      if($th.parents('.DTFC_Cloned').length){
+         var cellIdx = dt.fixedColumns().cellIndex($th);
+         col = cellIdx.column;
+      } else {
+         col = dt.column($th).index();
+      }
 
       var cells = dt.cells('tr', col, {
          page: (
@@ -466,6 +484,12 @@ Checkboxes.prototype = {
       }
 
       self.updateSelectAll();
+
+      // If column is fixed using FixedColumns extension
+      if($th.parents('.DTFC_Cloned').length){
+         // Update columns in the cloned table
+         dt.fixedColumns().update();
+      }
 
       e.stopPropagation();
    },
@@ -525,31 +549,31 @@ Checkboxes.prototype = {
                search: 'applied'
             });
 
-            var $table = dt.table().container();
-            var $chkbox_all = dt.$(cells.nodes()).find('input[type="checkbox"]');
-            var $chkbox_checked = dt.$(cells.nodes()).find('input[type="checkbox"]:checked');
-            var chkbox_select_all = $('input[type="checkbox"]', dt.column(colIdx).header()).get(0);
+            var $tableContainer = dt.table().container();
+            var $checkboxes = dt.$(cells.nodes()).find('.dt-checkboxes');
+            var $checkboxesChecked = dt.$(cells.nodes()).find('.dt-checkboxes:checked');
+            var $checkboxesSelectAll = $('.dt-checkboxes-select-all[data-col="' + colIdx + '"] input[type="checkbox"]', $tableContainer);
 
             // If none of the checkboxes are checked
-            if ($chkbox_checked.length === 0) {
-               chkbox_select_all.checked = false;
-               if ('indeterminate' in chkbox_select_all) {
-                  chkbox_select_all.indeterminate = false;
-               }
+            if ($checkboxesChecked.length === 0) {
+               $checkboxesSelectAll.prop({
+                  'checked': false,
+                  'indeterminate': false
+               });
 
             // If all of the checkboxes are checked
-            } else if ($chkbox_checked.length === $chkbox_all.length) {
-               chkbox_select_all.checked = true;
-               if ('indeterminate' in chkbox_select_all) {
-                  chkbox_select_all.indeterminate = false;
-               }
+            } else if ($checkboxesChecked.length === $checkboxes.length) {
+               $checkboxesSelectAll.prop({
+                  'checked': true,
+                  'indeterminate': false
+               });
 
             // If some of the checkboxes are checked
             } else {
-               chkbox_select_all.checked = true;
-               if ('indeterminate' in chkbox_select_all) {
-                  chkbox_select_all.indeterminate = true;
-               }
+               $checkboxesSelectAll.prop({
+                  'checked': true,
+                  'indeterminate': true
+               });
             }
          }
       }
@@ -594,9 +618,9 @@ Checkboxes.prototype = {
          $.each( ctx.aanFeatures.i, function ( i, el ) {
             var $el = $(el);
 
-            var $exisiting = $el.children('span.select-info');
-            if($exisiting.length){
-               $exisiting.remove();
+            var $existing = $el.children('span.select-info');
+            if($existing.length){
+               $existing.remove();
             }
 
             if($output.text() !== ''){
@@ -604,8 +628,22 @@ Checkboxes.prototype = {
             }
          });
       }
-   }
+   },
 
+   // Gets cell index
+   getCellIndex: function(cell){
+      var self = this;
+      var dt = self.s.dt;
+      var ctx = dt.settings()[0];
+
+      // If FixedColumns extension is available
+      if(DataTable.FixedColumns){
+         return dt.fixedColumns().cellIndex(cell);
+
+      } else {
+         return dt.cell(cell).index();
+      }
+   }
 };
 
 
