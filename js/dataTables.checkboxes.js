@@ -1,4 +1,4 @@
-/*! Checkboxes 1.1.0-dev
+/*! Checkboxes 1.1.0-alpha.1
  *  Copyright (c) Gyrocode (www.gyrocode.com)
  *  License: MIT License
  */
@@ -6,7 +6,7 @@
 /**
  * @summary     Checkboxes
  * @description Checkboxes extension for jQuery DataTables
- * @version     1.1.0-dev
+ * @version     1.1.0-alpha.1
  * @file        dataTables.checkboxes.js
  * @author      Gyrocode (http://www.gyrocode.com/projects/jquery-datatables-checkboxes/)
  * @contact     http://www.gyrocode.com/contacts
@@ -229,6 +229,28 @@ Checkboxes.prototype = {
          // Handle click on heading containing "Select all" control
          $tableContainer.on('click', 'thead th.dt-checkboxes-select-all', function(e) {
             $('input[type="checkbox"]', this).trigger('click');
+         });
+
+         // Handle click on "Select all" control in floating fixed header
+         $(document).on('click', '.fixedHeader-floating thead th.dt-checkboxes-select-all input[type="checkbox"]', function(e){
+            // If FixedHeader is enabled in this instance
+            if(ctx._fixedHeader){
+               // If header is floating in this instance
+               if(ctx._fixedHeader.dom['header'].floating){
+                  self.onClickSelectAll(e, this);
+               }
+            }
+         });
+
+         // Handle click on heading containing "Select all" control in floating fixed header
+         $(document).on('click', '.fixedHeader-floating thead th.dt-checkboxes-select-all', function(e) {
+            // If FixedHeader is enabled in this instance
+            if(ctx._fixedHeader){
+               // If header is floating in this instance
+               if(ctx._fixedHeader.dom['header'].floating){
+                  $('input[type="checkbox"]', this).trigger('click');
+               }
+            }
          });
       }
    },
@@ -553,6 +575,14 @@ Checkboxes.prototype = {
             var $checkboxes = dt.$(cells.nodes()).find('.dt-checkboxes');
             var $checkboxesChecked = dt.$(cells.nodes()).find('.dt-checkboxes:checked');
             var $checkboxesSelectAll = $('.dt-checkboxes-select-all[data-col="' + colIdx + '"] input[type="checkbox"]', $tableContainer);
+
+            // If FixedHeader is enabled in this instance
+            if(ctx._fixedHeader){
+               // If header is floating in this instance
+               if(ctx._fixedHeader.dom['header'].floating){
+                  $checkboxesSelectAll = $('.fixedHeader-floating .dt-checkboxes-select-all[data-col="' + colIdx + '"] input[type="checkbox"]');
+               }
+            }
 
             // If none of the checkboxes are checked
             if ($checkboxesChecked.length === 0) {
