@@ -1,0 +1,28 @@
+{
+  "name": "jquery-datatables-checkboxes",
+  "version": "1.1.0-dev",
+  "description": "Checkboxes is an extension for the jQuery DataTables library that provides universal solution for working with checkboxes in a table.",
+  "main": "./js/dataTables.checkboxes.js",
+  "keywords": [
+    "jQuery",
+    "DataTables",
+    "checkboxes"
+  ],
+  "author": {
+    "name": "Gyrocode",
+    "url": "http://www.gyrocode.com"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/gyrocode/jquery-datatables-checkboxes/issues"
+  },
+  "homepage": "http://www.gyrocode.com/projects/jquery-datatables-checkboxes/",
+  "dependencies": {
+    "jquery": ">=1.7",
+    "datatables.net": ">=1.10"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gyrocode/jquery-datatables-checkboxes.git"
+  }
+}
