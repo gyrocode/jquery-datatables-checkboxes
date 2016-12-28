@@ -1,4 +1,4 @@
-/*! Checkboxes 1.1.0-alpha.1
+/*! Checkboxes 1.1.0
  *  Copyright (c) Gyrocode (www.gyrocode.com)
  *  License: MIT License
  */
@@ -6,7 +6,7 @@
 /**
  * @summary     Checkboxes
  * @description Checkboxes extension for jQuery DataTables
- * @version     1.1.0-alpha.1
+ * @version     1.1.0
  * @file        dataTables.checkboxes.js
  * @author      Gyrocode (http://www.gyrocode.com/projects/jquery-datatables-checkboxes/)
  * @contact     http://www.gyrocode.com/contacts
@@ -772,7 +772,7 @@ Api.registerPlural( 'columns().checkboxes.selected()', 'column().checkboxes.sele
  * @name Checkboxes.version
  * @static
  */
-Checkboxes.version = '1.0.0';
+Checkboxes.version = '1.1.0';
 
 
 
