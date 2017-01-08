@@ -1,4 +1,4 @@
-/*! Checkboxes 1.1.0
+/*! Checkboxes 1.1.1
  *  Copyright (c) Gyrocode (www.gyrocode.com)
  *  License: MIT License
  */
@@ -6,7 +6,7 @@
 /**
  * @summary     Checkboxes
  * @description Checkboxes extension for jQuery DataTables
- * @version     1.1.0
+ * @version     1.1.1
  * @file        dataTables.checkboxes.js
  * @author      Gyrocode (http://www.gyrocode.com/projects/jquery-datatables-checkboxes/)
  * @contact     http://www.gyrocode.com/contacts
@@ -81,6 +81,9 @@ Checkboxes.prototype = {
       var hasCheckboxes = false;
       var hasCheckboxesSelectRow = false;
 
+      // Retrieve stored state
+      var state = dt.state.loaded();
+
       for(var i = 0; i < ctx.aoColumns.length; i++){
          if (ctx.aoColumns[i].checkboxes){
             //
@@ -141,6 +144,12 @@ Checkboxes.prototype = {
 
             // Initialize array holding data for selected checkboxes
             self.s.data[i] = [];
+
+            // If state is loaded and contains data for this column
+            if(state && state.checkboxes && state.checkboxes.hasOwnProperty(i)){
+               // Load previous state
+               self.s.data[i] = state.checkboxes[i];
+            }
 
             // Store column index for easy column selection later
             self.s.columns.push(i);
@@ -252,6 +261,15 @@ Checkboxes.prototype = {
                }
             }
          });
+
+         // If stave saving is enabled
+         if(ctx.oFeatures.bStateSave){
+            // Handle state saving event
+            dt.on('stateSaveParams.checkboxes', function (e, settings, data){
+               // Store data associated with this plug-in
+               data.checkboxes = self.s.data;
+            });
+         }
       }
    },
 
@@ -317,6 +335,9 @@ Checkboxes.prototype = {
             }
          });
       }
+
+      // Save state
+      dt.state.save();
    },
 
    // Updates row selection
