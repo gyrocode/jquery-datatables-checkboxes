@@ -1,4 +1,4 @@
-/*! Checkboxes 1.1.1
+/*! Checkboxes 1.1.2
  *  Copyright (c) Gyrocode (www.gyrocode.com)
  *  License: MIT License
  */
@@ -6,7 +6,7 @@
 /**
  * @summary     Checkboxes
  * @description Checkboxes extension for jQuery DataTables
- * @version     1.1.1
+ * @version     1.1.2
  * @file        dataTables.checkboxes.js
  * @author      Gyrocode (http://www.gyrocode.com/projects/jquery-datatables-checkboxes/)
  * @contact     http://www.gyrocode.com/contacts
@@ -14,11 +14,35 @@
  * @license     MIT License
  */
 
-(function(window, document, undefined) {
+(function( factory ){
+   if ( typeof define === 'function' && define.amd ) {
+      // AMD
+      define( ['jquery', 'datatables.net'], function ( $ ) {
+         return factory( $, window, document );
+      } );
+   }
+   else if ( typeof exports === 'object' ) {
+      // CommonJS
+      module.exports = function (root, $) {
+         if ( ! root ) {
+            root = window;
+         }
 
+         if ( ! $ || ! $.fn.dataTable ) {
+            $ = require('datatables.net')(root, $).$;
+         }
 
-var factory = function( $, DataTable ) {
-"use strict";
+         return factory( $, root, root.document );
+      };
+   }
+   else {
+      // Browser
+      factory( jQuery, window, document );
+   }
+}(function( $, window, document, undefined ) {
+'use strict';
+var DataTable = $.fn.dataTable;
+ 
 
 /**
  * Checkboxes is an extension for the jQuery DataTables library that provides
@@ -811,22 +835,6 @@ $(document).on( 'preInit.dt.dtr', function (e, settings, json) {
    new Checkboxes( settings );
 } );
 
+
 return Checkboxes;
-}; // /factory
-
-
-// Define as an AMD module if possible
-if ( typeof define === 'function' && define.amd ) {
-   define( ['jquery', 'datatables'], factory );
-}
-else if ( typeof exports === 'object' ) {
-    // Node/CommonJS
-    factory( require('jquery'), require('datatables') );
-}
-else if ( jQuery && !jQuery.fn.dataTable.Checkboxes ) {
-   // Otherwise simply initialise as normal, stopping multiple evaluation
-   factory( jQuery, jQuery.fn.dataTable );
-}
-
-
-})(window, document);
+}));
