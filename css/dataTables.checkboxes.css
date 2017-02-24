@@ -1,6 +1,7 @@
 table.dataTable.dt-checkboxes-select tbody tr,
 table.dataTable thead .dt-checkboxes-select-all {
   cursor: pointer;
+  text-align: center;
 }
 
 div.dataTables_wrapper span.select-info,
