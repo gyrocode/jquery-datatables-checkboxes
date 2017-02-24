@@ -1,4 +1,4 @@
-/*! Checkboxes 1.1.2
+/*! Checkboxes 1.1.3
  *  Copyright (c) Gyrocode (www.gyrocode.com)
  *  License: MIT License
  */
@@ -6,7 +6,7 @@
 /**
  * @summary     Checkboxes
  * @description Checkboxes extension for jQuery DataTables
- * @version     1.1.2
+ * @version     1.1.3
  * @file        dataTables.checkboxes.js
  * @author      Gyrocode (http://www.gyrocode.com/projects/jquery-datatables-checkboxes/)
  * @contact     http://www.gyrocode.com/contacts
@@ -51,7 +51,7 @@ var DataTable = $.fn.dataTable;
  *  @class
  *  @param {object} settings DataTables settings object for the host table
  *  @requires jQuery 1.7+
- *  @requires DataTables 1.10.0+
+ *  @requires DataTables 1.10.8+
  *
  *  @example
  *     $('#example').DataTable({
@@ -64,9 +64,9 @@ var DataTable = $.fn.dataTable;
  *     });
  */
 var Checkboxes = function ( settings ) {
-   // Sanity check that we are using DataTables 1.10 or newer
-   if ( ! DataTable.versionCheck || ! DataTable.versionCheck( '1.10.0' ) ) {
-      throw 'DataTables Checkboxes requires DataTables 1.10.0 or newer';
+   // Sanity check that we are using DataTables 1.10.8 or newer
+   if ( ! DataTable.versionCheck || ! DataTable.versionCheck( '1.10.8' ) ) {
+      throw 'DataTables Checkboxes requires DataTables 1.10.8 or newer';
    }
 
    this.s = {
