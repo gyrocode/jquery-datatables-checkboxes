@@ -231,7 +231,7 @@ Checkboxes.prototype = {
 
             // Update the table information element with selected item summary
             //
-            // NOTE: Needed to display correct count of selected rows 
+            // NOTE: Needed to display correct count of selected rows
             // when using server-side processing mode
             $table.on('draw.dt.dtCheckboxes select.dt.dtCheckboxes deselect.dt.dtCheckboxes', function(){
                self.showInfoSelected();
@@ -312,8 +312,13 @@ Checkboxes.prototype = {
             $tableBody.off('.dtCheckboxes');
             $table.off('.dtCheckboxes');
 
-            // Remove added elements
+            // Clear data
+            //
+            // NOTE: Needed only to reduce memory footprint
+            // in case user saves instance of DataTable object.
+            self.s.data = {};
 
+            // Remove added elements
             $('.dt-checkboxes-select-all', $table).each(function(index, el){
                $(el)
                   .html($(el).data('html'))
