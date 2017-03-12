@@ -19,7 +19,7 @@
   "homepage": "http://www.gyrocode.com/projects/jquery-datatables-checkboxes/",
   "dependencies": {
     "jquery": ">=1.7",
-    "datatables.net": ">=1.10"
+    "datatables.net": ">=1.10.8"
   },
   "repository": {
     "type": "git",
