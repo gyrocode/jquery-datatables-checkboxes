@@ -423,22 +423,33 @@ Checkboxes.prototype = {
       var dt = self.s.dt;
       var ctx = self.s.ctx;
 
-      var nodes = [];
+      var cellSelector = [];
       if(type === 'row'){
          dt.rows(selector).every(function(rowIdx){
             // Get index of the first column that has checkbox and row selection enabled
             var colIdx = self.getSelectRowColIndex();
             if(colIdx !== null){
-               nodes.push(dt.cell(rowIdx, colIdx).node());
+               cellSelector.push({ row: rowIdx, column: colIdx });
             }
          });
 
       } else if(type === 'cell'){
-         nodes = dt.cells(selector).nodes();
+         cellSelector = selector;
+
       }
 
+      var nodes = dt.cells(cellSelector).nodes();
       if(nodes.length){
          $('input.dt-checkboxes', nodes).prop('checked', isSelected);
+
+         // NOTE: For performance reasons assume that cellSelector is always
+         // an array of objects with two properties: "row" and "column".
+         var colIdx = cellSelector[0].column;
+
+         // If selectCallback is a function
+         if($.isFunction(ctx.aoColumns[colIdx].checkboxes.selectCallback)){
+            ctx.aoColumns[colIdx].checkboxes.selectCallback(nodes, isSelected);
+         }
       }
    },
 
@@ -465,7 +476,7 @@ Checkboxes.prototype = {
 
             // If cell needs to be selected
             if(dataSeen[cellData] <= ctx.checkboxes.s.data[cellCol][cellData]){
-               self.updateCheckbox('cell', { row: cellRow, column: cellCol }, true);
+               self.updateCheckbox('cell', [{ row: cellRow, column: cellCol }], true);
 
                // If row selection is enabled
                if(ctx.aoColumns[cellCol].checkboxes.selectRow){
@@ -599,26 +610,33 @@ Checkboxes.prototype = {
             }
          }
 
+         var isSelected;
+         var isIndeterminate;
+
          // If none of the checkboxes are checked
          if ($checkboxesChecked.length === 0) {
-            $checkboxesSelectAll.prop({
-               'checked': false,
-               'indeterminate': false
-            });
+            isSelected      = false;
+            isIndeterminate = false;
 
          // If all of the checkboxes are checked
          } else if ($checkboxesChecked.length === $checkboxes.length) {
-            $checkboxesSelectAll.prop({
-               'checked': true,
-               'indeterminate': false
-            });
+            isSelected      = true;
+            isIndeterminate = false;
 
          // If some of the checkboxes are checked
          } else {
-            $checkboxesSelectAll.prop({
-               'checked': true,
-               'indeterminate': true
-            });
+            isSelected      = true;
+            isIndeterminate = true;
+         }
+
+         $checkboxesSelectAll.prop({
+            'checked': isSelected,
+            'indeterminate': isIndeterminate
+         });
+
+         // If selectAllCallback is a function
+         if($.isFunction(ctx.aoColumns[colIdx].checkboxes.selectAllCallback)){
+            ctx.aoColumns[colIdx].checkboxes.selectAllCallback($checkboxesSelectAll.closest('th').get(0), isSelected, isIndeterminate);
          }
       }
    },
@@ -740,7 +758,7 @@ Checkboxes.defaults = {
     * Enable / disable row selection
     *
     * @type {Boolean}
-    * @default  `false`
+    * @default `false`
     */
    selectRow: false,
 
@@ -748,7 +766,7 @@ Checkboxes.defaults = {
     * Enable / disable "select all" control in the header
     *
     * @type {Boolean}
-    * @default  `true`
+    * @default `true`
     */
    selectAll: true,
 
@@ -756,9 +774,25 @@ Checkboxes.defaults = {
     * Enable / disable ability to select checkboxes from all pages
     *
     * @type {Boolean}
-    * @default  `true`
+    * @default `true`
     */
-   selectAllPages: true
+   selectAllPages: true,
+
+   /**
+    * Checkbox select/deselect callback
+    *
+    * @type {Function}
+    * @default  `null`
+    */
+   selectCallback: null,
+
+   /**
+    * "Select all" control select/deselect callback
+    *
+    * @type {Function}
+    * @default  `null`
+    */
+   selectAllCallback: null
 };
 
 
@@ -810,7 +844,7 @@ Api.registerPlural( 'cells().checkboxes.select()', 'cell().checkboxes.select()',
 
    return this.iterator( 'cell', function ( ctx, rowIdx, colIdx ) {
       if(ctx.checkboxes){
-         var selector = { row: rowIdx, column: colIdx };
+         var selector = [{ row: rowIdx, column: colIdx }];
 
          ctx.checkboxes.updateCheckbox('cell', selector, (select) ? true : false);
          ctx.checkboxes.updateData('cell', selector, (select) ? true : false, allowDups);
