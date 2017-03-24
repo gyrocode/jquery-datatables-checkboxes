@@ -877,6 +877,17 @@ Api.registerPlural( 'cells().checkboxes.deselect()', 'cell().checkboxes.deselect
    return this.checkboxes.select(false, allowDups);
 } );
 
+Api.registerPlural( 'columns().checkboxes.deselectAll()', 'column().checkboxes.deselectAll()', function () {
+   return this.iterator( 'column', function (ctx, colIdx){
+      // If Checkboxes extension is enabled for this column
+      if(ctx.aoColumns[colIdx].checkboxes){
+         ctx.checkboxes.s.data[colIdx] = {};
+
+         this.column(colIdx).checkboxes.select(false, false);
+      }
+   }, 1 );
+} );
+
 Api.registerPlural( 'columns().checkboxes.selected()', 'column().checkboxes.selected()', function () {
    return this.iterator( 'column', function (ctx, colIdx){
       if(ctx.aoColumns[colIdx].checkboxes){
