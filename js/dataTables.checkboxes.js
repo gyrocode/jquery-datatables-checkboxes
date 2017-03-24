@@ -506,19 +506,10 @@ Checkboxes.prototype = {
          cellSelector = $cell;
       }
 
-      var cell    = dt.cell(cellSelector);
-      var cellIdx = cell.index();
-      var colIdx  = cellIdx.column;
+      dt.cell(cellSelector).checkboxes.select(ctrl.checked, true);
 
-      // If row selection is not enabled
-      // NOTE: if row selection is enabled, checkbox selection/deselection
-      // would be handled by onSelect event instead
-      if(!ctx.aoColumns[colIdx].checkboxes.selectRow){
-         cell.checkboxes.select(ctrl.checked, true);
-
-         // Prevent click event from propagating to parent
-         e.stopPropagation();
-      }
+      // Prevent click event from propagating to parent
+      e.stopPropagation();
    },
 
    // Handles row select/deselect event
