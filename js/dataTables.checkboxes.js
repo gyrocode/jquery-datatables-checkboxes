@@ -521,8 +521,8 @@ Checkboxes.prototype = {
       if(self.s.ignoreSelect){ return; }
 
       if(type === 'row'){
-         self.updateCheckbox('row', indexes, (e.type === 'select') ? true : false);
          self.updateData('row', indexes, (e.type === 'select') ? true : false, true);
+         self.updateCheckbox('row', indexes, (e.type === 'select') ? true : false);
 
          // Get index of the first column that has checkbox and row selection enabled
          var colIdx = self.getSelectRowColIndex();
@@ -816,8 +816,8 @@ Api.registerPlural( 'columns().checkboxes.select()', 'column().checkboxes.select
             selector.push({ row: rowIdx, column: colIdx });
          });
 
-         ctx.checkboxes.updateCheckbox('cell', selector, (select) ? true : false);
          ctx.checkboxes.updateData('cell', selector, (select) ? true : false, allowDups);
+         ctx.checkboxes.updateCheckbox('cell', selector, (select) ? true : false);
 
          // If row selection is enabled
          if(ctx.aoColumns[colIdx].checkboxes.selectRow){
@@ -846,8 +846,8 @@ Api.registerPlural( 'cells().checkboxes.select()', 'cell().checkboxes.select()',
       if(ctx.checkboxes){
          var selector = [{ row: rowIdx, column: colIdx }];
 
-         ctx.checkboxes.updateCheckbox('cell', selector, (select) ? true : false);
          ctx.checkboxes.updateData('cell', selector, (select) ? true : false, allowDups);
+         ctx.checkboxes.updateCheckbox('cell', selector, (select) ? true : false);
 
          // If row selection is enabled
          if(ctx.aoColumns[colIdx].checkboxes.selectRow){
