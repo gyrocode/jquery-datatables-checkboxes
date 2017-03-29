@@ -109,7 +109,8 @@ Checkboxes.prototype = {
       var hasCheckboxesSelectRow = false;
 
       // Retrieve stored state
-      var state = dt.state.loaded();
+      var state = dt.state.loaded(),
+          rowClass = 'dt-checkboxes';
 
       for(var i = 0; i < ctx.aoColumns.length; i++){
          if (ctx.aoColumns[i].checkboxes){
@@ -129,6 +130,33 @@ Checkboxes.prototype = {
                {}, Checkboxes.defaults, ctx.aoColumns[i].checkboxes
             );
 
+            //
+            // CHECKBOX INPUT VALIDATION
+            //
+
+            var checkbox = ctx.aoColumns[i].checkboxes.checkboxElement.replace(/\s+/g, ' '),
+                checkbox_header,
+                checkbox_table;
+
+            if($(checkbox).is('input')){
+               checkbox_header = checkbox_table = checkbox;
+
+               // if regular input or not wrapped input next with an element
+               // example:
+               // '<input type="checkbox">\
+               // <span></span>'
+               // only input will be returned
+
+               checkbox_table = $(checkbox_table).addClass(rowClass).get(0).outerHTML;
+               checkbox_header = $(checkbox_header).get(0).outerHTML;
+            } else if ($(checkbox).find('input').length == 1){
+               // Check for only 1 input in string, otherwise you can spam inputs inside
+               checkbox_header = checkbox_table = checkbox;
+               checkbox_table = $(checkbox_table).find('input').addClass(rowClass).end().get(0).outerHTML;
+            } else {
+               checkbox_header = '<input type="checkbox">';
+               checkbox_table = '<input type="checkbox" class="'+ rowClass +'">';
+            }
 
             //
             // WORKAROUNDS:
@@ -140,11 +168,11 @@ Checkboxes.prototype = {
                   'targets': i,
                   'searchable': false,
                   'orderable': false,
-                  'width':'1%',
+                  'width': ctx.aoColumns[i].checkboxes.checkboxWidth,
                   'className': 'dt-body-center',
                   'render': function (data, type, full, meta){
                      if(type === 'display'){
-                        data = '<input type="checkbox" class="dt-checkboxes">';
+                        data = checkbox_table;
                      }
                      return data;
                   }
@@ -199,7 +227,7 @@ Checkboxes.prototype = {
                $colHeader.data('html', $colHeader.html());
 
                $colHeader
-                  .html('<input type="checkbox">')
+                  .html(checkbox_header)
                   .addClass('dt-checkboxes-select-all')
                   .attr('data-col', i);
             }
@@ -253,11 +281,6 @@ Checkboxes.prototype = {
             self.onClickSelectAll(e, this);
          });
 
-         // Handle click on heading containing "Select all" control
-         $tableContainer.on('click.dtCheckboxes', 'thead th.dt-checkboxes-select-all', function(e) {
-            $('input[type="checkbox"]', this).trigger('click');
-         });
-
          // Handle click on "Select all" control in floating fixed header
          $(document).on('click.dtCheckboxes', '.fixedHeader-floating thead th.dt-checkboxes-select-all input[type="checkbox"]', function(e){
             // If FixedHeader is enabled in this instance
@@ -265,17 +288,6 @@ Checkboxes.prototype = {
                // If header is floating in this instance
                if(ctx._fixedHeader.dom['header'].floating){
                   self.onClickSelectAll(e, this);
-               }
-            }
-         });
-
-         // Handle click on heading containing "Select all" control in floating fixed header
-         $(document).on('click.dtCheckboxes', '.fixedHeader-floating thead th.dt-checkboxes-select-all', function(e) {
-            // If FixedHeader is enabled in this instance
-            if(ctx._fixedHeader){
-               // If header is floating in this instance
-               if(ctx._fixedHeader.dom['header'].floating){
-                  $('input[type="checkbox"]', this).trigger('click');
                }
             }
          });
@@ -449,6 +461,13 @@ Checkboxes.prototype = {
          // If selectCallback is a function
          if($.isFunction(ctx.aoColumns[colIdx].checkboxes.selectCallback)){
             ctx.aoColumns[colIdx].checkboxes.selectCallback(nodes, isSelected);
+         }
+
+         // If rowHighlight is enabled
+         if(isSelected && !ctx._select && ctx.aoColumns[colIdx].checkboxes.rowHighlight){
+            $(dt.$(nodes).closest('tr')).addClass('selected');
+         } else {
+            $(dt.$(nodes).closest('tr')).removeClass('selected');
          }
       }
    },
@@ -792,7 +811,31 @@ Checkboxes.defaults = {
     * @type {Function}
     * @default  `null`
     */
-   selectAllCallback: null
+   selectAllCallback: null,
+
+   /**
+    * Row highlighting on checkbox without Select extension
+    *
+    * @type {Boolean}
+    * @default  `false`
+    */
+   rowHighlight: false,
+
+   /**
+    * HTML code for Checkbox element
+    *
+    * @type {String}
+    * @default'<input type="checkbox">'
+    */
+   checkboxElement: '<input type="checkbox">',
+
+   /**
+    * Width of Checkbox element
+    *
+    * @type {String}
+    * @default  '1%'
+    */
+   checkboxWidth: '1%'
 };
 
 
