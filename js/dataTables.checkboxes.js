@@ -238,6 +238,35 @@ Checkboxes.prototype = {
             });
          }
 
+         // Handle Ajax request completion event
+         $table.on('xhr.dt', function ( e, settings, json, xhr ) {
+            // Retrieve stored state
+            var state = dt.state.loaded();
+
+            $.each(self.s.columns, function(index, colIdx){
+               // Clear data
+               self.s.data[colIdx] = {};
+
+               // If state is loaded and contains data for this column
+               if(state && state.checkboxes && state.checkboxes.hasOwnProperty(colIdx)){
+                  // Load previous state
+                  self.s.data[colIdx] = state.checkboxes[colIdx];
+               }
+            });
+
+            // If state saving is enabled
+            if(ctx.oFeatures.bStateSave){           
+               // If server-side processing mode is not enabled
+               // NOTE: Needed to avoid duplicate call to updateCheckboxes() in onDraw()
+               if(!ctx.oFeatures.bServerSide){
+                  // Update table state on next redraw
+                  $table.one('draw.dt.dtCheckboxes', function(e){
+                     self.updateState();
+                  });
+               }
+            }
+         });
+
          // Handle table draw event
          $table.on('draw.dt.dtCheckboxes', function(e){
             self.onDraw(e);
@@ -289,11 +318,7 @@ Checkboxes.prototype = {
                // If server-side processing mode is not enabled
                // NOTE: Needed to avoid duplicate call to updateCheckboxes() in onDraw()
                if(!ctx.oFeatures.bServerSide){
-                  self.updateCheckboxes({ page: 'all', search: 'none' });
-
-                  $.each(self.s.columns, function(index, colIdx){
-                     self.updateSelectAll(colIdx);
-                  });
+                  self.updateState();
                }
 
                // Handle state saving event
@@ -453,6 +478,19 @@ Checkboxes.prototype = {
       }
    },
 
+   // Update table state
+   updateState: function(){
+      var self = this;
+      var dt = self.s.dt;
+      var ctx = self.s.ctx;
+
+      self.updateCheckboxes({ page: 'all', search: 'none' });
+
+      $.each(self.s.columns, function(index, colIdx){
+         self.updateSelectAll(colIdx);
+      });
+   },
+
    // Updates state of multiple checkboxes
    updateCheckboxes: function(opts){
       var self = this;
@@ -571,7 +609,7 @@ Checkboxes.prototype = {
 
       // If server-side processing is enabled
       if(ctx.oFeatures.bServerSide){
-         self.updateCheckboxes({ page: 'current' });
+         self.updateCheckboxes({ page: 'current', search: 'none' });
       }
 
       $.each(self.s.columns, function(index, colIdx){
