@@ -255,7 +255,7 @@ Checkboxes.prototype = {
             });
 
             // If state saving is enabled
-            if(ctx.oFeatures.bStateSave){           
+            if(ctx.oFeatures.bStateSave){
                // If server-side processing mode is not enabled
                // NOTE: Needed to avoid duplicate call to updateCheckboxes() in onDraw()
                if(!ctx.oFeatures.bServerSide){
@@ -544,10 +544,44 @@ Checkboxes.prototype = {
          cellSelector = $cell;
       }
 
-      dt.cell(cellSelector).checkboxes.select(ctrl.checked, true);
+      var cell    = dt.cell(cellSelector);
+      var cellIdx = cell.index();
+      var colIdx  = cellIdx.column;
 
-      // Prevent click event from propagating to parent
-      e.stopPropagation();
+      // If row selection is not enabled
+      // NOTE: if row selection is enabled, checkbox selection/deselection
+      // would be handled by onSelect event instead
+      if(!ctx.aoColumns[colIdx].checkboxes.selectRow){
+         cell.checkboxes.select(ctrl.checked, true);
+
+         // Prevent click event from propagating to parent
+         e.stopPropagation();
+
+      // Otherwise, if row selection is enabled
+      } else {
+         // WORKAROUND:
+         // Select extension may keep the row selected
+         // when checkbox is unchecked with SHIFT key.
+         //
+         // We need to update the state of the checkbox AFTER handling
+         // select/deselect event from Select extension.
+         //
+         // Call to setTimeout is needed to let select/deselect event handler
+         // update the data first.
+         setTimeout(function(){
+            // Get cell data
+            var cellData = cell.data();
+
+            // Determine whether data is in the list
+            var hasData = self.s.data[colIdx].hasOwnProperty(cellData);
+
+            // If state of the checkbox needs to be updated
+            if(hasData !== ctrl.checked){
+               self.updateCheckbox('cell', [cellIdx], hasData);
+               self.updateSelectAll(colIdx);
+            }
+         }, 0);
+      }
    },
 
    // Handles row select/deselect event
@@ -559,7 +593,21 @@ Checkboxes.prototype = {
       if(self.s.ignoreSelect){ return; }
 
       if(type === 'row'){
-         self.updateData('row', indexes, (e.type === 'select') ? true : false, true);
+         // By default, allow duplicate data
+         var allowDup = true;
+
+         // WORKAROUND:
+         // Select extension may generate multiple select events for the same row
+         // when selecting rows using SHIFT key and the following styles are used
+         // 'os', 'multi+shift'.
+         //
+         // If user is selecting/deselecting multiple rows using SHIFT key
+         if((ctx._select.style === 'os' || ctx._select.style === 'multi+shift') && indexes.length > 1){
+           // Disallow handling of rows with duplicate data
+            allowDup = false;
+         }
+
+         self.updateData('row', indexes, (e.type === 'select') ? true : false, allowDup);
          self.updateCheckbox('row', indexes, (e.type === 'select') ? true : false);
 
          // Get index of the first column that has checkbox and row selection enabled
