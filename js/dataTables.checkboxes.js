@@ -131,31 +131,35 @@ Checkboxes.prototype = {
 
 
             //
-            // WORKAROUNDS:
+            // OPTIONS
             //
-            // DataTables doesn't support natively ability to modify settings on the fly.
-            // The following code is a workaround that deals with possible consequences.
 
-            DataTable.ext.internal._fnApplyColumnDefs(ctx, [{
-                  'targets': i,
-                  'searchable': false,
-                  'orderable': false,
-                  'width':'1%',
-                  'className': 'dt-body-center',
-                  'render': function (data, type, full, meta){
-                     if(type === 'display'){
-                        data = '<input type="checkbox" class="dt-checkboxes">';
-                     }
-                     return data;
-                  }
-               }], {}, function (iCol, oDef) {
-                  DataTable.ext.internal._fnColumnOptions( ctx, iCol, oDef );
-            });
+            var colOptions = {
+               'searchable': false,
+               'orderable': false
+            };
 
-            // Remove "sorting" class
+            if(ctx.aoColumns[i].sClass === ''){
+               colOptions['className'] = 'dt-body-center';
+            }
+
+            if(ctx.aoColumns[i].sWidthOrig === null){
+               colOptions['width'] = '1%';
+            }
+
+            if(ctx.aoColumns[i].mRender === null){
+               colOptions['render'] = function(){
+                  return '<input type="checkbox" class="dt-checkboxes">';
+               };
+            }
+
+            DataTable.ext.internal._fnColumnOptions(ctx, i, colOptions);
+
+
+            // WORKAROUND: Remove "sorting" class
             $colHeader.removeClass('sorting');
 
-            // Detach all event handlers for this column
+            // WORKAROUND: Detach all event handlers for this column
             $colHeader.off('.dt');
 
 
