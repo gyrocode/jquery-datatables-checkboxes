@@ -537,20 +537,12 @@ Checkboxes.prototype = {
 
       var cellSelector;
 
-      // Get cell
-      var $cell = $(ctrl).closest('td');
-
-      // If cell is in a fixed column using FixedColumns extension
-      if($cell.parents('.DTFC_Cloned').length){
-         cellSelector = dt.fixedColumns().cellIndex($cell);
-
-      } else {
-         cellSelector = $cell;
-      }
-
-      var cell    = dt.cell(cellSelector);
-      var cellIdx = cell.index();
+      // Get cell and column index
+      var cellIdx = this.getCellIndex($(ctrl).closest('td'));
       var colIdx  = cellIdx.column;
+
+      // Get cell
+      var cell    = dt.cell(cellIdx);
 
       // If row selection is not enabled
       // NOTE: if row selection is enabled, checkbox selection/deselection
@@ -628,17 +620,9 @@ Checkboxes.prototype = {
       var dt = self.s.dt;
       var ctx = self.s.ctx;
 
-      // Calculate column index
-      var colIdx = null;
-      var $th = $(ctrl).closest('th');
-
-      // If column is fixed using FixedColumns extension
-      if($th.parents('.DTFC_Cloned').length){
-         var cellIdx = dt.fixedColumns().cellIndex($th);
-         colIdx = cellIdx.column;
-      } else {
-         colIdx = dt.column($th).index();
-      }
+      // Get cell and column index
+      var cellIdx = this.getCellIndex($(ctrl).closest('th'));
+      var colIdx  = cellIdx.column;
 
       dt.column(colIdx, {
          page: (
