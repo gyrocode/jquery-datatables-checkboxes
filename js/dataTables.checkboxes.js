@@ -1,4 +1,4 @@
-/*! Checkboxes 1.2.1
+/*! Checkboxes 1.2.2
  *  Copyright (c) Gyrocode (www.gyrocode.com)
  *  License: MIT License
  */
@@ -6,7 +6,7 @@
 /**
  * @summary     Checkboxes
  * @description Checkboxes extension for jQuery DataTables
- * @version     1.2.1
+ * @version     1.2.2
  * @file        dataTables.checkboxes.js
  * @author      Gyrocode (http://www.gyrocode.com/projects/jquery-datatables-checkboxes/)
  * @contact     http://www.gyrocode.com/contacts
@@ -537,12 +537,20 @@ Checkboxes.prototype = {
 
       var cellSelector;
 
-      // Get cell and column index
-      var cellIdx = this.getCellIndex($(ctrl).closest('td'));
-      var colIdx  = cellIdx.column;
-
       // Get cell
-      var cell    = dt.cell(cellIdx);
+      var $cell = $(ctrl).closest('td');
+
+      // If cell is in a fixed column using FixedColumns extension
+      if($cell.parents('.DTFC_Cloned').length){
+         cellSelector = dt.fixedColumns().cellIndex($cell);
+
+      } else {
+         cellSelector = $cell;
+      }
+
+      var cell    = dt.cell(cellSelector);
+      var cellIdx = cell.index();
+      var colIdx  = cellIdx.column;
 
       // If row selection is not enabled
       // NOTE: if row selection is enabled, checkbox selection/deselection
@@ -620,9 +628,17 @@ Checkboxes.prototype = {
       var dt = self.s.dt;
       var ctx = self.s.ctx;
 
-      // Get cell and column index
-      var cellIdx = this.getCellIndex($(ctrl).closest('th'));
-      var colIdx  = cellIdx.column;
+      // Calculate column index
+      var colIdx = null;
+      var $th = $(ctrl).closest('th');
+
+      // If column is fixed using FixedColumns extension
+      if($th.parents('.DTFC_Cloned').length){
+         var cellIdx = dt.fixedColumns().cellIndex($th);
+         colIdx = cellIdx.column;
+      } else {
+         colIdx = dt.column($th).index();
+      }
 
       dt.column(colIdx, {
          page: (
@@ -987,7 +1003,7 @@ Api.registerPlural( 'columns().checkboxes.selected()', 'column().checkboxes.sele
  * @name Checkboxes.version
  * @static
  */
-Checkboxes.version = '1.2.1';
+Checkboxes.version = '1.2.2';
 
 
 
