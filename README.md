@@ -4,7 +4,7 @@ jQuery DataTables Checkboxes
 Checkboxes is an extension for the jQuery DataTables library that provides
 universal solution for working with checkboxes in a table.
 
-More information and examples is available at
+More information and examples are available at
 [gyrocode.com/projects/jquery-datatables-checkboxes/](http://www.gyrocode.com/projects/jquery-datatables-checkboxes/).
 
 
