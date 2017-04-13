@@ -1,4 +1,4 @@
-/*! Checkboxes 1.2.3
+/*! Checkboxes 1.2.4
  *  Copyright (c) Gyrocode (www.gyrocode.com)
  *  License: MIT License
  */
@@ -6,7 +6,7 @@
 /**
  * @summary     Checkboxes
  * @description Checkboxes extension for jQuery DataTables
- * @version     1.2.3
+ * @version     1.2.4
  * @file        dataTables.checkboxes.js
  * @author      Gyrocode (http://www.gyrocode.com/projects/jquery-datatables-checkboxes/)
  * @contact     http://www.gyrocode.com/contacts
@@ -161,6 +161,16 @@ Checkboxes.prototype = {
 
             // WORKAROUND: Detach all event handlers for this column
             $colHeader.off('.dt');
+
+            // If table has data source other than Ajax
+            if(ctx.sAjaxSource === null){
+               // WORKAROUND: Invalidate column data
+               var cells = dt.cells('tr', i);
+               cells.invalidate('data');
+
+               // WORKAROUND: Add required class to existing cells
+               $(cells.nodes()).addClass(colOptions['className']);
+            }
 
 
             //
