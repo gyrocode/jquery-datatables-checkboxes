@@ -1,4 +1,4 @@
-/*! Checkboxes 1.2.4
+/*! Checkboxes 1.2.5-dev
  *  Copyright (c) Gyrocode (www.gyrocode.com)
  *  License: MIT License
  */
@@ -6,7 +6,7 @@
 /**
  * @summary     Checkboxes
  * @description Checkboxes extension for jQuery DataTables
- * @version     1.2.4
+ * @version     1.2.5-dev
  * @file        dataTables.checkboxes.js
  * @author      Gyrocode (http://www.gyrocode.com/projects/jquery-datatables-checkboxes/)
  * @contact     http://www.gyrocode.com/contacts
@@ -368,13 +368,10 @@ Checkboxes.prototype = {
    },
 
    // Updates array holding data for selected checkboxes
-   updateData: function(type, selector, isSelected, allowDups){
+   updateData: function(type, selector, isSelected){
       var self = this;
       var dt = self.s.dt;
       var ctx = self.s.ctx;
-
-      // By default, duplicate data is not allowed
-      if(typeof allowDups === 'undefined'){ allowDups = false; }
 
       var cellSelector;
 
@@ -399,30 +396,13 @@ Checkboxes.prototype = {
             // Get cell data
             var cellData = this.data();
 
-            // Determine whether data is in the list
-            var hasData = ctx.checkboxes.s.data[cellCol].hasOwnProperty(cellData);
-
-            // If checkbox is checked and data is not in the list
+            // If checkbox is checked
             if(isSelected){
-               // If data is available and duplicates are allowed
-               if(hasData && allowDups){
-                  ctx.checkboxes.s.data[cellCol][cellData]++;
+               ctx.checkboxes.s.data[cellCol][cellData] = 1;
 
-               // Otherwise, if data is not available or duplicates are not allowed
-               } else {
-                  ctx.checkboxes.s.data[cellCol][cellData] = 1;
-               }
-
-            // Otherwise, if checkbox is not checked and data is in the list
-            } else if (!isSelected && hasData){
-               // If only data counter equals to 1 or duplicates are not allowed
-               if(ctx.checkboxes.s.data[cellCol][cellData] === 1 || !allowDups){
-                  delete ctx.checkboxes.s.data[cellCol][cellData];
-
-               // Otherwise, if data counter is greater than 1 and duplicates are allowed
-               } else {
-                  ctx.checkboxes.s.data[cellCol][cellData]--;
-               }
+            // Otherwise, if checkbox is not checked
+            } else {
+               delete ctx.checkboxes.s.data[cellCol][cellData];
             }
          }
       });
@@ -607,21 +587,7 @@ Checkboxes.prototype = {
       if(self.s.ignoreSelect){ return; }
 
       if(type === 'row'){
-         // By default, allow duplicate data
-         var allowDup = true;
-
-         // WORKAROUND:
-         // Select extension may generate multiple select events for the same row
-         // when selecting rows using SHIFT key and the following styles are used
-         // 'os', 'multi+shift'.
-         //
-         // If user is selecting/deselecting multiple rows using SHIFT key
-         if((ctx._select.style === 'os' || ctx._select.style === 'multi+shift') && indexes.length > 1){
-           // Disallow handling of rows with duplicate data
-            allowDup = false;
-         }
-
-         self.updateData('row', indexes, (e.type === 'select') ? true : false, allowDup);
+         self.updateData('row', indexes, (e.type === 'select') ? true : false);
          self.updateCheckbox('row', indexes, (e.type === 'select') ? true : false);
 
          // Get index of the first column that has checkbox and row selection enabled
@@ -906,7 +872,7 @@ Api.register( 'checkboxes()', function () {
    return this;
 } );
 
-Api.registerPlural( 'columns().checkboxes.select()', 'column().checkboxes.select()', function ( select, allowDups ) {
+Api.registerPlural( 'columns().checkboxes.select()', 'column().checkboxes.select()', function ( select ) {
    if(typeof select === 'undefined'){ select = true; }
 
    return this.iterator( 'column-rows', function ( ctx, colIdx, i, j, rowsIdx ) {
@@ -916,7 +882,7 @@ Api.registerPlural( 'columns().checkboxes.select()', 'column().checkboxes.select
             selector.push({ row: rowIdx, column: colIdx });
          });
 
-         ctx.checkboxes.updateData('cell', selector, (select) ? true : false, allowDups);
+         ctx.checkboxes.updateData('cell', selector, (select) ? true : false);
          ctx.checkboxes.updateCheckbox('cell', selector, (select) ? true : false);
 
          // If row selection is enabled
@@ -939,14 +905,14 @@ Api.registerPlural( 'columns().checkboxes.select()', 'column().checkboxes.select
    }, 1 );
 } );
 
-Api.registerPlural( 'cells().checkboxes.select()', 'cell().checkboxes.select()', function ( select, allowDups ) {
+Api.registerPlural( 'cells().checkboxes.select()', 'cell().checkboxes.select()', function ( select ) {
    if(typeof select === 'undefined'){ select = true; }
 
    return this.iterator( 'cell', function ( ctx, rowIdx, colIdx ) {
       if(ctx.checkboxes){
          var selector = [{ row: rowIdx, column: colIdx }];
 
-         ctx.checkboxes.updateData('cell', selector, (select) ? true : false, allowDups);
+         ctx.checkboxes.updateData('cell', selector, (select) ? true : false);
          ctx.checkboxes.updateCheckbox('cell', selector, (select) ? true : false);
 
          // If row selection is enabled
@@ -969,12 +935,12 @@ Api.registerPlural( 'cells().checkboxes.select()', 'cell().checkboxes.select()',
    }, 1 );
 } );
 
-Api.registerPlural( 'columns().checkboxes.deselect()', 'column().checkboxes.deselect()', function ( allowDups ) {
-   return this.checkboxes.select(false, allowDups);
+Api.registerPlural( 'columns().checkboxes.deselect()', 'column().checkboxes.deselect()', function () {
+   return this.checkboxes.select(false);
 } );
 
-Api.registerPlural( 'cells().checkboxes.deselect()', 'cell().checkboxes.deselect()', function ( allowDups ) {
-   return this.checkboxes.select(false, allowDups);
+Api.registerPlural( 'cells().checkboxes.deselect()', 'cell().checkboxes.deselect()', function () {
+   return this.checkboxes.select(false);
 } );
 
 Api.registerPlural( 'columns().checkboxes.deselectAll()', 'column().checkboxes.deselectAll()', function () {
@@ -983,7 +949,7 @@ Api.registerPlural( 'columns().checkboxes.deselectAll()', 'column().checkboxes.d
       if(ctx.aoColumns[colIdx].checkboxes){
          ctx.checkboxes.s.data[colIdx] = {};
 
-         this.column(colIdx).checkboxes.select(false, false);
+         this.column(colIdx).checkboxes.select(false);
       }
    }, 1 );
 } );
@@ -1013,7 +979,7 @@ Api.registerPlural( 'columns().checkboxes.selected()', 'column().checkboxes.sele
  * @name Checkboxes.version
  * @static
  */
-Checkboxes.version = '1.2.3';
+Checkboxes.version = '1.2.5-dev';
 
 
 
