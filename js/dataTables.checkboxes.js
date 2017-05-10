@@ -1,4 +1,4 @@
-/*! Checkboxes 1.2.5-dev
+/*! Checkboxes 1.2.5
  *  Copyright (c) Gyrocode (www.gyrocode.com)
  *  License: MIT License
  */
@@ -6,7 +6,7 @@
 /**
  * @summary     Checkboxes
  * @description Checkboxes extension for jQuery DataTables
- * @version     1.2.5-dev
+ * @version     1.2.5
  * @file        dataTables.checkboxes.js
  * @author      Gyrocode (http://www.gyrocode.com/projects/jquery-datatables-checkboxes/)
  * @contact     http://www.gyrocode.com/contacts
@@ -265,35 +265,6 @@ Checkboxes.prototype = {
             });
          }
 
-         // Handle Ajax request completion event
-         $table.on('xhr.dt', function ( e, settings, json, xhr ) {
-            // Retrieve stored state
-            var state = dt.state.loaded();
-
-            $.each(self.s.columns, function(index, colIdx){
-               // Clear data
-               self.s.data[colIdx] = {};
-
-               // If state is loaded and contains data for this column
-               if(state && state.checkboxes && state.checkboxes.hasOwnProperty(colIdx)){
-                  // Load previous state
-                  self.s.data[colIdx] = state.checkboxes[colIdx];
-               }
-            });
-
-            // If state saving is enabled
-            if(ctx.oFeatures.bStateSave){
-               // If server-side processing mode is not enabled
-               // NOTE: Needed to avoid duplicate call to updateCheckboxes() in onDraw()
-               if(!ctx.oFeatures.bServerSide){
-                  // Update table state on next redraw
-                  $table.one('draw.dt.dtCheckboxes', function(e){
-                     self.updateState();
-                  });
-               }
-            }
-         });
-
          // Handle table draw event
          $table.on('draw.dt.dtCheckboxes', function(e){
             self.onDraw(e);
@@ -345,7 +316,32 @@ Checkboxes.prototype = {
                // If server-side processing mode is not enabled
                // NOTE: Needed to avoid duplicate call to updateCheckboxes() in onDraw()
                if(!ctx.oFeatures.bServerSide){
+
                   self.updateState();
+
+                  // Handle Ajax request completion event
+                  // NOTE: Needed to update table state
+                  // if table is reloaded via ajax.reload() API method
+                  $table.on('xhr.dt', function ( e, settings, json, xhr ) {
+                     // Retrieve stored state
+                     var state = dt.state.loaded();
+
+                     $.each(self.s.columns, function(index, colIdx){
+                        // Clear data
+                        self.s.data[colIdx] = {};
+
+                        // If state is loaded and contains data for this column
+                        if(state && state.checkboxes && state.checkboxes.hasOwnProperty(colIdx)){
+                           // Load previous state
+                           self.s.data[colIdx] = state.checkboxes[colIdx];
+                        }
+                     });
+
+                     // Update table state on next redraw
+                     $table.one('draw.dt.dtCheckboxes', function(e){
+                        self.updateState();
+                     });
+                  });
                }
 
                // Handle state saving event
@@ -505,7 +501,6 @@ Checkboxes.prototype = {
       var ctx = self.s.ctx;
 
       // Enumerate all cells
-      var dataSeen = {};
       dt.cells('tr', self.s.columns, opts).every(function(cellRow, cellCol){
          // Get cell data
          var cellData = this.data();
@@ -980,7 +975,7 @@ Api.registerPlural( 'columns().checkboxes.selected()', 'column().checkboxes.sele
  * @name Checkboxes.version
  * @static
  */
-Checkboxes.version = '1.2.5-dev';
+Checkboxes.version = '1.2.5';
 
 
 
