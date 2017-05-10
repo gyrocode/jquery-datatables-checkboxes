@@ -235,6 +235,19 @@ Checkboxes.prototype = {
          if(hasCheckboxesSelectRow){
             $table.addClass('dt-checkboxes-select');
 
+            // Handle event before row is selected/deselected
+            $table.on('user-select.dt.dtCheckboxes', function ( e, dt, type, cell, originalEvent ){
+               var colIdx = self.getSelectRowColIndex();
+
+               // WORKAROUND: Prevent duplicate checkbox select/deselect event
+               // when "label" node is used in the column containing checkbox
+               if(ctx.aoColumns[colIdx].checkboxes){
+                  if(originalEvent.target.nodeName.toLowerCase() === 'label'){
+                     e.preventDefault();
+                  }
+               }
+            });
+
             // Handle row select/deselect event
             $table.on('select.dt.dtCheckboxes deselect.dt.dtCheckboxes', function(e, api, type, indexes){
                self.onSelect(e, type, indexes);
