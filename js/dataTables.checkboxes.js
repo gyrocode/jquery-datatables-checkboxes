@@ -512,21 +512,11 @@ Checkboxes.prototype = {
 
          // If data is in the list
          if(ctx.checkboxes.s.data[cellCol].hasOwnProperty(cellData)){
-            // Determine how many times cell with given data was already selected
-            if(dataSeen.hasOwnProperty(cellData)){
-               dataSeen[cellData]++;
-            } else {
-               dataSeen[cellData] = 1;
-            }
+            self.updateCheckbox('cell', [{ row: cellRow, column: cellCol }], true);
 
-            // If cell needs to be selected
-            if(dataSeen[cellData] <= ctx.checkboxes.s.data[cellCol][cellData]){
-               self.updateCheckbox('cell', [{ row: cellRow, column: cellCol }], true);
-
-               // If row selection is enabled
-               if(ctx.aoColumns[cellCol].checkboxes.selectRow){
-                  self.updateSelect('row', cellRow, true);
-               }
+            // If row selection is enabled
+            if(ctx.aoColumns[cellCol].checkboxes.selectRow){
+               self.updateSelect('row', cellRow, true);
             }
          }
       });
@@ -749,7 +739,7 @@ Checkboxes.prototype = {
          var countRows = 0;
          for (var cellData in ctx.checkboxes.s.data[colIdx]){
             if (ctx.checkboxes.s.data[colIdx].hasOwnProperty(cellData)){
-               countRows += ctx.checkboxes.s.data[colIdx][cellData];
+               countRows++;
             }
          }
 
@@ -973,9 +963,7 @@ Api.registerPlural( 'columns().checkboxes.selected()', 'column().checkboxes.sele
          var data = [];
 
          $.each(ctx.checkboxes.s.data[colIdx], function(cellData, countRows){
-            for(var i = 0; i < countRows; i++){
-               data.push(cellData);
-            }
+            data.push(cellData);
          });
 
          return data;
