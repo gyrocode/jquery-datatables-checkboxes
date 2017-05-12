@@ -1,4 +1,4 @@
-/*! Checkboxes 1.2.5
+/*! Checkboxes 1.2.6
  *  Copyright (c) Gyrocode (www.gyrocode.com)
  *  License: MIT License
  */
@@ -6,7 +6,7 @@
 /**
  * @summary     Checkboxes
  * @description Checkboxes extension for jQuery DataTables
- * @version     1.2.5
+ * @version     1.2.6
  * @file        dataTables.checkboxes.js
  * @author      Gyrocode (http://www.gyrocode.com/projects/jquery-datatables-checkboxes/)
  * @contact     http://www.gyrocode.com/contacts
@@ -309,27 +309,32 @@ Checkboxes.prototype = {
 
          // Handle table initialization event
          $table.on('init.dt.dtCheckboxes', function(){
+            // If server-side processing mode is not enabled
+            // NOTE: Needed to avoid duplicate call to updateCheckboxes() in onDraw()
+            if(!ctx.oFeatures.bServerSide){
 
-            // If state saving is enabled
-            if(ctx.oFeatures.bStateSave){
-
-               // If server-side processing mode is not enabled
-               // NOTE: Needed to avoid duplicate call to updateCheckboxes() in onDraw()
-               if(!ctx.oFeatures.bServerSide){
-
+               // If state saving is enabled
+               if(ctx.oFeatures.bStateSave){
                   self.updateState();
+               }
 
-                  // Handle Ajax request completion event
-                  // NOTE: Needed to update table state
-                  // if table is reloaded via ajax.reload() API method
-                  $table.on('xhr.dt', function ( e, settings, json, xhr ) {
+               // Handle Ajax request completion event
+               // NOTE: Needed to update table state
+               // if table is reloaded via ajax.reload() API method
+               $table.on('xhr.dt', function ( e, settings, json, xhr ) {
+                  // For every column where checkboxes are enabled
+                  $.each(self.s.columns, function(index, colIdx){
+                     // Clear data
+                     self.s.data[colIdx] = {};
+                  });
+
+                  // If state saving is enabled
+                  if(ctx.oFeatures.bStateSave){
                      // Retrieve stored state
                      var state = dt.state.loaded();
 
+                     // For every column where checkboxes are enabled
                      $.each(self.s.columns, function(index, colIdx){
-                        // Clear data
-                        self.s.data[colIdx] = {};
-
                         // If state is loaded and contains data for this column
                         if(state && state.checkboxes && state.checkboxes.hasOwnProperty(colIdx)){
                            // Load previous state
@@ -341,9 +346,12 @@ Checkboxes.prototype = {
                      $table.one('draw.dt.dtCheckboxes', function(e){
                         self.updateState();
                      });
-                  });
-               }
+                  }
+               });
+            }
 
+            // If state saving is enabled
+            if(ctx.oFeatures.bStateSave){
                // Handle state saving event
                $table.on('stateSaveParams.dt.dtCheckboxes', function (e, settings, data){
                   // Store data associated with this plug-in
@@ -975,7 +983,7 @@ Api.registerPlural( 'columns().checkboxes.selected()', 'column().checkboxes.sele
  * @name Checkboxes.version
  * @static
  */
-Checkboxes.version = '1.2.5';
+Checkboxes.version = '1.2.6';
 
 
 
