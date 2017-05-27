@@ -457,7 +457,7 @@ Checkboxes.prototype = {
 
          // If selectCallback is a function
          if($.isFunction(ctx.aoColumns[colIdx].checkboxes.selectCallback)){
-            ctx.aoColumns[colIdx].checkboxes.selectCallback(nodes, isSelected);
+            ctx.aoColumns[colIdx].checkboxes.selectCallback(cellNodes, isSelected);
          }
       }
    },
