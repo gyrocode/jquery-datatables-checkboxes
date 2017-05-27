@@ -486,17 +486,23 @@ Checkboxes.prototype = {
          // Get cell data
          var cellData = this.data();
 
-         // If checkbox in the cell can be checked
-         if(self.isCellSelectable(colIdx, cellData)){
-            // If data is in the list
-            if(ctx.checkboxes.s.data[colIdx].hasOwnProperty(cellData)){
-               self.updateCheckbox(this, colIdx, true);
+         // Determine if checkbox in the cell can be checked
+         var isCellSelectable = self.isCellSelectable(colIdx, cellData);
 
-               // If row selection is enabled
-               if(ctx.aoColumns[colIdx].checkboxes.selectRow){
-                  self.updateSelect(rowIdx, true);
-               }
+         // If checkbox is selected
+         if(ctx.checkboxes.s.data[colIdx].hasOwnProperty(cellData)){
+            self.updateCheckbox(this, colIdx, true);
+
+            // If row selection is enabled
+            // and checkbox can be checked
+            if(ctx.aoColumns[colIdx].checkboxes.selectRow && isCellSelectable){
+               self.updateSelect(rowIdx, true);
             }
+         }
+
+         // If checkbox is disabled
+         if(!isCellSelectable){
+            $('input.dt-checkboxes', this.node()).prop('disabled', true);
          }
       });
    },
@@ -618,7 +624,11 @@ Checkboxes.prototype = {
       var ctx = self.s.ctx;
 
       // If server-side processing is enabled
-      if(ctx.oFeatures.bServerSide){
+      // or deferred render is enabled
+      //
+      // TODO: it's not optimal to update state of checkboxes
+      // for already created rows in deferred rendering mode
+      if(ctx.oFeatures.bServerSide || ctx.oFeatures.bDeferRender){
          self.updateStateCheckboxes({ page: 'current', search: 'none' });
       }
 
@@ -646,9 +656,13 @@ Checkboxes.prototype = {
          });
 
          var $tableContainer = dt.table().container();
-         var $checkboxes = $('.dt-checkboxes', cells.nodes()).not(':disabled');
-         var $checkboxesChecked = $checkboxes.filter(':checked').not(':disabled');
          var $checkboxesSelectAll = $('.dt-checkboxes-select-all[data-col="' + colIdx + '"] input[type="checkbox"]', $tableContainer);
+
+         var countChecked = 0;
+         var cellsData = cells.data();
+         $.each(cellsData, function(index, cellData){
+            if(self.s.data[colIdx].hasOwnProperty(cellData)){ countChecked++; }
+         });
 
          // If FixedHeader is enabled in this instance
          if(ctx._fixedHeader){
@@ -662,12 +676,12 @@ Checkboxes.prototype = {
          var isIndeterminate;
 
          // If none of the checkboxes are checked
-         if ($checkboxesChecked.length === 0) {
+         if (countChecked === 0) {
             isSelected      = false;
             isIndeterminate = false;
 
          // If all of the checkboxes are checked
-         } else if ($checkboxesChecked.length === $checkboxes.length) {
+         } else if (countChecked === cellsData.length) {
             isSelected      = true;
             isIndeterminate = false;
 
@@ -973,7 +987,12 @@ Api.registerPlural( 'cells().checkboxes.enable()', 'cell().checkboxes.enable()',
             delete ctx.checkboxes.s.dataDisabled[colIdx][cellData];
          }
 
-         $('input.dt-checkboxes', cell.node()).prop('disabled', state);
+         // Determine if cell node is available
+         // (deferRender is not enabled or cell has been already created)
+         var cellNode = cell.node();
+         if(cellNode){
+            $('input.dt-checkboxes', cellNode).prop('disabled', state);
+         }
 
          // If row selection is enabled
          if(ctx.aoColumns[colIdx].checkboxes.selectRow){
