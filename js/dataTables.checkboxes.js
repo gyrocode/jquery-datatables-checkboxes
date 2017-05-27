@@ -884,8 +884,8 @@ Api.register( 'checkboxes()', function () {
    return this;
 } );
 
-Api.registerPlural( 'columns().checkboxes.select()', 'column().checkboxes.select()', function ( select ) {
-   if(typeof select === 'undefined'){ select = true; }
+Api.registerPlural( 'columns().checkboxes.select()', 'column().checkboxes.select()', function ( state ) {
+   if(typeof state === 'undefined'){ state = true; }
 
    return this.iterator( 'column-rows', function ( ctx, colIdx, i, j, rowsIdx ) {
       if(ctx.checkboxes){
@@ -911,12 +911,12 @@ Api.registerPlural( 'columns().checkboxes.select()', 'column().checkboxes.select
 
          cells = this.cells(selector);
 
-         ctx.checkboxes.updateData(cells, colIdx, (select) ? true : false);
-         ctx.checkboxes.updateCheckbox(cells, colIdx, (select) ? true : false);
+         ctx.checkboxes.updateData(cells, colIdx, state);
+         ctx.checkboxes.updateCheckbox(cells, colIdx, state);
 
          // If row selection is enabled
          if(ctx.aoColumns[colIdx].checkboxes.selectRow){
-            ctx.checkboxes.updateSelect(rowsSelectableIdx, select);
+            ctx.checkboxes.updateSelect(rowsSelectableIdx, state);
          }
 
          // If FixedColumns extension is enabled
@@ -934,8 +934,8 @@ Api.registerPlural( 'columns().checkboxes.select()', 'column().checkboxes.select
    }, 1 );
 } );
 
-Api.registerPlural( 'cells().checkboxes.select()', 'cell().checkboxes.select()', function ( select ) {
-   if(typeof select === 'undefined'){ select = true; }
+Api.registerPlural( 'cells().checkboxes.select()', 'cell().checkboxes.select()', function ( state ) {
+   if(typeof state === 'undefined'){ state = true; }
 
    return this.iterator( 'cell', function ( ctx, rowIdx, colIdx ) {
       if(ctx.checkboxes){
@@ -944,12 +944,12 @@ Api.registerPlural( 'cells().checkboxes.select()', 'cell().checkboxes.select()',
 
          // If checkbox in the cell can be checked
          if(ctx.checkboxes.isCellSelectable(colIdx, cellData)){
-            ctx.checkboxes.updateData(cells, colIdx, (select) ? true : false);
-            ctx.checkboxes.updateCheckbox(cells, colIdx, (select) ? true : false);
+            ctx.checkboxes.updateData(cells, colIdx, state);
+            ctx.checkboxes.updateCheckbox(cells, colIdx, state);
 
             // If row selection is enabled
             if(ctx.aoColumns[colIdx].checkboxes.selectRow){
-               ctx.checkboxes.updateSelect(rowIdx, select);
+               ctx.checkboxes.updateSelect(rowIdx, state);
             }
 
             // If FixedColumns extension is enabled
@@ -980,41 +980,48 @@ Api.registerPlural( 'cells().checkboxes.enable()', 'cell().checkboxes.enable()',
 
          // If checkbox should be enabled
          if(state){
-            ctx.checkboxes.s.dataDisabled[colIdx][cellData] = 1;
+            delete ctx.checkboxes.s.dataDisabled[colIdx][cellData];
 
          // Otherwise, if checkbox should be disabled
          } else {
-            delete ctx.checkboxes.s.dataDisabled[colIdx][cellData];
+            ctx.checkboxes.s.dataDisabled[colIdx][cellData] = 1;
          }
 
          // Determine if cell node is available
          // (deferRender is not enabled or cell has been already created)
          var cellNode = cell.node();
          if(cellNode){
-            $('input.dt-checkboxes', cellNode).prop('disabled', state);
+            $('input.dt-checkboxes', cellNode).prop('disabled', !state);
          }
 
          // If row selection is enabled
+         // and checkbox can be checked
          if(ctx.aoColumns[colIdx].checkboxes.selectRow){
             // If data is in the list
             if(ctx.checkboxes.s.data[colIdx].hasOwnProperty(cellData)){
-               ctx.checkboxes.updateSelect(rowIdx, true);
+               // Update selection based on current state:
+               // if checkbox is enabled then select row; 
+               // otherwise, deselect row
+               ctx.checkboxes.updateSelect(rowIdx, state);
             }
          }
       }
    }, 1 );
 } );
 
-Api.registerPlural( 'cells().checkboxes.disable()', 'cell().checkboxes.disable()', function () {
-   return this.checkboxes.enable();
+Api.registerPlural( 'cells().checkboxes.disable()', 'cell().checkboxes.disable()', function ( state ) {
+   if(typeof state === 'undefined'){ state = true; }
+   return this.checkboxes.enable(!state);
 } );
 
-Api.registerPlural( 'columns().checkboxes.deselect()', 'column().checkboxes.deselect()', function () {
-   return this.checkboxes.select(false);
+Api.registerPlural( 'columns().checkboxes.deselect()', 'column().checkboxes.deselect()', function ( state ) {
+   if(typeof state === 'undefined'){ state = true; }
+   return this.checkboxes.select(!state);
 } );
 
-Api.registerPlural( 'cells().checkboxes.deselect()', 'cell().checkboxes.deselect()', function () {
-   return this.checkboxes.select(false);
+Api.registerPlural( 'cells().checkboxes.deselect()', 'cell().checkboxes.deselect()', function ( state ) {
+   if(typeof state === 'undefined'){ state = true; }
+   return this.checkboxes.select(!state);
 } );
 
 Api.registerPlural( 'columns().checkboxes.deselectAll()', 'column().checkboxes.deselectAll()', function () {
