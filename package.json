@@ -10,13 +10,13 @@
   ],
   "author": {
     "name": "Gyrocode",
-    "url": "http://www.gyrocode.com"
+    "url": "https://www.gyrocode.com"
   },
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/gyrocode/jquery-datatables-checkboxes/issues"
   },
-  "homepage": "http://www.gyrocode.com/projects/jquery-datatables-checkboxes/",
+  "homepage": "https://www.gyrocode.com/projects/jquery-datatables-checkboxes/",
   "dependencies": {
     "jquery": ">=1.7",
     "datatables.net": ">=1.10.8"

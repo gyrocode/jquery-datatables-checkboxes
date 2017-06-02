@@ -5,7 +5,7 @@ Checkboxes is an extension for the jQuery DataTables library that provides
 universal solution for working with checkboxes in a table.
 
 More information and examples are available at
-[gyrocode.com/projects/jquery-datatables-checkboxes/](http://www.gyrocode.com/projects/jquery-datatables-checkboxes/).
+[gyrocode.com/projects/jquery-datatables-checkboxes/](https://www.gyrocode.com/projects/jquery-datatables-checkboxes/).
 
 
 How to use
@@ -27,13 +27,13 @@ Documentation
 -------------
 
 Documentation is available at
-[gyrocode.com/projects/jquery-datatables-checkboxes/](http://www.gyrocode.com/projects/jquery-datatables-checkboxes/).
+[gyrocode.com/projects/jquery-datatables-checkboxes/](https://www.gyrocode.com/projects/jquery-datatables-checkboxes/).
 
 
 Copyright
 ---------
 
-Gyrocode, [gyrocode.com](http://www.gyrocode.com)
+Gyrocode, [gyrocode.com](https://www.gyrocode.com)
 
 
 License
