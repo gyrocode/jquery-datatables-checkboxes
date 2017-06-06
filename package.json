@@ -1,6 +1,6 @@
 {
   "name": "jquery-datatables-checkboxes",
-  "version": "1.2.7",
+  "version": "1.2.8",
   "description": "Checkboxes is an extension for the jQuery DataTables library that provides universal solution for working with checkboxes in a table.",
   "main": "./js/dataTables.checkboxes.js",
   "keywords": [
