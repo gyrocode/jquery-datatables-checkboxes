@@ -141,7 +141,9 @@ Checkboxes.prototype = {
             };
 
             if(ctx.aoColumns[i].sClass === ''){
-               colOptions['className'] = 'dt-body-center';
+               colOptions['className'] = 'dt-checkboxes-cell';
+            } else {
+               colOptions['className'] = ctx.aoColumns[i].sClass + ' dt-checkboxes-cell';
             }
 
             if(ctx.aoColumns[i].sWidthOrig === null){
@@ -263,14 +265,6 @@ Checkboxes.prototype = {
                   // Prevent row selection
                   e.preventDefault();
                }
-
-               // WORKAROUND: Prevent duplicate checkbox select/deselect event
-               // when "label" node is used in the column containing checkbox
-               if(ctx.aoColumns[colIdx].checkboxes){
-                  if(originalEvent.target.nodeName.toLowerCase() === 'label'){
-                     e.preventDefault();
-                  }
-               }
             });
 
             // Handle row select/deselect event
@@ -295,7 +289,7 @@ Checkboxes.prototype = {
             self.onDraw(e);
          });
 
-         // Handles checkbox click event
+         // Handle checkbox click event
          $tableBody.on('click.dtCheckboxes', 'input.dt-checkboxes', function(e){
             self.onClick(e, this);
          });
@@ -308,6 +302,21 @@ Checkboxes.prototype = {
          // Handle click on heading containing "Select all" control
          $tableContainer.on('click.dtCheckboxes', 'thead th.dt-checkboxes-select-all', function(e) {
             $('input[type="checkbox"]', this).not(':disabled').trigger('click');
+         });
+
+         // If row selection is disabled
+         if(!hasCheckboxesSelectRow){
+            // Handle click on cell containing checkbox
+            $tableContainer.on('click.dtCheckboxes', 'tbody td.dt-checkboxes-cell', function(e) {
+               $('input[type="checkbox"]', this).not(':disabled').trigger('click');
+            });
+         }
+
+         // Handle click on label node in heading containing "Select all" control
+         // and in cell containing checkbox
+         $tableContainer.on('click.dtCheckboxes', 'thead th.dt-checkboxes-select-all label, tbody td.dt-checkboxes-cell label', function(e) {
+            // Prevent default behavior
+            e.preventDefault();
          });
 
          // Handle click on "Select all" control in floating fixed header
