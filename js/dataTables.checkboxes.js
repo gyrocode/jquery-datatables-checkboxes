@@ -1,4 +1,4 @@
-/*! Checkboxes 1.2.9
+/*! Checkboxes 1.2.10-dev
  *  Copyright (c) Gyrocode (www.gyrocode.com)
  *  License: MIT License
  */
@@ -6,7 +6,7 @@
 /**
  * @summary     Checkboxes
  * @description Checkboxes extension for jQuery DataTables
- * @version     1.2.9
+ * @version     1.2.10-dev
  * @file        dataTables.checkboxes.js
  * @author      Gyrocode (http://www.gyrocode.com/projects/jquery-datatables-checkboxes/)
  * @contact     http://www.gyrocode.com/contacts
@@ -1067,18 +1067,34 @@ Api.registerPlural( 'columns().checkboxes.deselectAll()', 'column().checkboxes.d
 } );
 
 Api.registerPlural( 'columns().checkboxes.selected()', 'column().checkboxes.selected()', function () {
-   return this.iterator( 'column', function (ctx, colIdx){
+   return this.iterator( 'column-rows', function ( ctx, colIdx, i, j, rowsIdx ) {
+      // If Checkboxes extension is enabled for this column
       if(ctx.aoColumns[colIdx].checkboxes){
+         // Prepare a list of all cells
+         var selector = [];
+         $.each(rowsIdx, function(index, rowIdx){
+            selector.push({ row: rowIdx, column: colIdx });
+         });
+
+         // Get all cells data
+         var cells = this.cells(selector);
+         var cellsData = cells.data();
+
          var data = [];
 
-         $.each(ctx.checkboxes.s.data[colIdx], function(cellData, countRows){
-            // If checkbox in the cell can be checked
-            if(ctx.checkboxes.isCellSelectable(colIdx, cellData)){
-               data.push(cellData);
+         // Enumerate all cells data
+         $.each(cellsData, function(index, cellData){
+            // If checkbox is checked
+            if(ctx.checkboxes.s.data[colIdx].hasOwnProperty(cellData)){
+               // If checkbox in the cell can be selected
+               if(ctx.checkboxes.isCellSelectable(colIdx, cellData)){
+                  data.push(cellData);
+               }
             }
          });
 
          return data;
+
       } else {
          return [];
       }
@@ -1092,7 +1108,7 @@ Api.registerPlural( 'columns().checkboxes.selected()', 'column().checkboxes.sele
  * @name Checkboxes.version
  * @static
  */
-Checkboxes.version = '1.2.9';
+Checkboxes.version = '1.2.10-dev';
 
 
 
