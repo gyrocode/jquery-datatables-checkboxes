@@ -509,10 +509,10 @@ Checkboxes.prototype = {
          // Get cell data
          var cellData = this.data();
 
-         // Determine if checkbox in the cell can be checked
+         // Determine if checkbox in the cell can be selected
          var isCellSelectable = self.isCellSelectable(colIdx, cellData);
 
-         // If checkbox is selected
+         // If checkbox is checked
          if(ctx.checkboxes.s.data[colIdx].hasOwnProperty(cellData)){
             self.updateCheckbox(this, colIdx, true);
 
@@ -919,7 +919,8 @@ Api.registerPlural( 'columns().checkboxes.select()', 'column().checkboxes.select
    if(typeof state === 'undefined'){ state = true; }
 
    return this.iterator( 'column-rows', function ( ctx, colIdx, i, j, rowsIdx ) {
-      if(ctx.checkboxes){
+      // If Checkboxes extension is enabled for this column
+      if(ctx.aoColumns[colIdx].checkboxes){
          // Prepare a list of all cells
          var selector = [];
          $.each(rowsIdx, function(index, rowIdx){
@@ -933,7 +934,7 @@ Api.registerPlural( 'columns().checkboxes.select()', 'column().checkboxes.select
          var rowsSelectableIdx = [];
          selector = [];
          $.each(cellsData, function(index, cellData){
-            // If checkbox in the cell can be checked
+            // If checkbox in the cell can be selected
             if(ctx.checkboxes.isCellSelectable(colIdx, cellData)){
                selector.push({ row: rowsIdx[index], column: colIdx });
                rowsSelectableIdx.push(rowsIdx[index]);
@@ -969,11 +970,12 @@ Api.registerPlural( 'cells().checkboxes.select()', 'cell().checkboxes.select()',
    if(typeof state === 'undefined'){ state = true; }
 
    return this.iterator( 'cell', function ( ctx, rowIdx, colIdx ) {
-      if(ctx.checkboxes){
+      // If Checkboxes extension is enabled for this column
+      if(ctx.aoColumns[colIdx].checkboxes){
          var cells = this.cells([{ row: rowIdx, column: colIdx }]);
          var cellData = this.cell({ row: rowIdx, column: colIdx }).data();
 
-         // If checkbox in the cell can be checked
+         // If checkbox in the cell can be selected
          if(ctx.checkboxes.isCellSelectable(colIdx, cellData)){
             ctx.checkboxes.updateData(cells, colIdx, state);
             ctx.checkboxes.updateCheckbox(cells, colIdx, state);
@@ -1003,7 +1005,8 @@ Api.registerPlural( 'cells().checkboxes.enable()', 'cell().checkboxes.enable()',
    if(typeof state === 'undefined'){ state = true; }
 
    return this.iterator( 'cell', function ( ctx, rowIdx, colIdx ) {
-      if(ctx.checkboxes){
+      // If Checkboxes extension is enabled for this column
+      if(ctx.aoColumns[colIdx].checkboxes){
          var cell = this.cell({ row: rowIdx, column: colIdx });
 
          // Get cell data
