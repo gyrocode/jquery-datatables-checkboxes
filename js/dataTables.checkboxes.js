@@ -629,7 +629,7 @@ Checkboxes.prototype = {
 
       // Indicate that state of "Select all" control has been changed
       $(ctrl).data('is-changed', true);
-      
+
       dt.column(colIdx, {
          page: (
             (ctx.aoColumns[colIdx].checkboxes && ctx.aoColumns[colIdx].checkboxes.selectAllPages)
@@ -685,9 +685,17 @@ Checkboxes.prototype = {
          var $checkboxesSelectAll = $('.dt-checkboxes-select-all[data-col="' + colIdx + '"] input[type="checkbox"]', $tableContainer);
 
          var countChecked = 0;
+         var countDisabled = 0;
          var cellsData = cells.data();
          $.each(cellsData, function(index, cellData){
-            if(self.s.data[colIdx].hasOwnProperty(cellData)){ countChecked++; }
+            // If checkbox is not disabled
+            if(self.isCellSelectable(colIdx, cellData)){
+               if(self.s.data[colIdx].hasOwnProperty(cellData)){ countChecked++; }
+
+            // Otherwise, if checkbox is disabled
+            } else {
+               countDisabled++;
+            }
          });
 
          // If FixedHeader is enabled in this instance
@@ -702,12 +710,12 @@ Checkboxes.prototype = {
          var isIndeterminate;
 
          // If none of the checkboxes are checked
-         if (countChecked === 0) {
+         if (countChecked === 0){
             isSelected      = false;
             isIndeterminate = false;
 
          // If all of the checkboxes are checked
-         } else if (countChecked === cellsData.length) {
+         } else if ((countChecked + countDisabled) === cellsData.length){
             isSelected      = true;
             isIndeterminate = false;
 
