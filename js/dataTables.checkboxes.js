@@ -627,6 +627,9 @@ Checkboxes.prototype = {
          colIdx = dt.column($th).index();
       }
 
+      // Indicate that state of "Select all" control has been changed
+      $(ctrl).data('is-changed', true);
+      
       dt.column(colIdx, {
          page: (
             (ctx.aoColumns[colIdx].checkboxes && ctx.aoColumns[colIdx].checkboxes.selectAllPages)
@@ -714,14 +717,24 @@ Checkboxes.prototype = {
             isIndeterminate = true;
          }
 
-         $checkboxesSelectAll.prop({
-            'checked': isSelected,
-            'indeterminate': isIndeterminate
-         });
+         var isChanged          = $checkboxesSelectAll.data('is-changed');
+         var isSelectedNow      = $checkboxesSelectAll.prop('checked');
+         var isIndeterminateNow = $checkboxesSelectAll.prop('indeterminate');
 
-         // If selectAllCallback is a function
-         if($.isFunction(ctx.aoColumns[colIdx].checkboxes.selectAllCallback)){
-            ctx.aoColumns[colIdx].checkboxes.selectAllCallback($checkboxesSelectAll.closest('th').get(0), isSelected, isIndeterminate);
+         // If state of "Select all" control has been changed
+         if(isChanged || isSelectedNow !== isSelected || isIndeterminateNow !== isIndeterminate){
+            // Reset "Select all" control state flag
+            $checkboxesSelectAll.data('is-changed', false);
+
+            $checkboxesSelectAll.prop({
+               'checked': isSelected,
+               'indeterminate': isIndeterminate
+            });
+
+            // If selectAllCallback is a function
+            if($.isFunction(ctx.aoColumns[colIdx].checkboxes.selectAllCallback)){
+               ctx.aoColumns[colIdx].checkboxes.selectAllCallback($checkboxesSelectAll.closest('th').get(0), isSelected, isIndeterminate);
+            }
          }
       }
    },
