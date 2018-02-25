@@ -438,8 +438,12 @@ Checkboxes.prototype = {
             }
          });
 
+         var colSaveState = ctx.oFeatures.bStateSave;
+         if (typeof ctx.aoColumns[colIdx].checkboxes.saveState !== 'undefined'){
+            colSaveState = ctx.aoColumns[colIdx].checkboxes.saveState;
+         }
          // If state saving is enabled
-         if(ctx.oFeatures.bStateSave){
+         if(colSaveState){
             // Save state
             dt.state.save();
          }
