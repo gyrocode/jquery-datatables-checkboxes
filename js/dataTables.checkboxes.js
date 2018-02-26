@@ -424,6 +424,7 @@
                // NOTE: Needed only to reduce memory footprint
                // in case user saves instance of DataTable object.
                self.s.data = {};
+               self.s.dataDisabled = {};
 
                // Remove added elements
                $('.dt-checkboxes-select-all', $table).each(function(index, el){
