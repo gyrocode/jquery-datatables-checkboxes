@@ -74,8 +74,8 @@
       this.s = {
          dt: new DataTable.Api( settings ),
          columns: [],
-         data: {},
-         dataDisabled: {},
+         data: [],
+         dataDisabled: [],
          ignoreSelect: false
       };
 
@@ -86,7 +86,7 @@
       if ( this.s.ctx.checkboxes ) {
          return;
       }
-
+      
       settings.checkboxes = this;
 
       this._constructor();
@@ -360,11 +360,12 @@
                   // Handle Ajax request completion event
                   // NOTE: Needed to update table state
                   // if table is reloaded via ajax.reload() API method
-                  $table.on('xhr.dt', function ( /* e, settings , json, xhr */ ) {
+                  $table.on('xhr.dt.dtCheckboxes', function ( /* e, settings , json, xhr */ ) {
                      // For every column where checkboxes are enabled
                      $.each(self.s.columns, function(index, colIdx){
                         // Clear data
                         self.s.data[colIdx] = {};
+                        self.s.dataDisabled[colIdx] = {};
                      });
 
                      // If state saving is enabled
