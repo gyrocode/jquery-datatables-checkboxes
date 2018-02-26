@@ -188,8 +188,11 @@
 
                // If state is loaded and contains data for this column
                if(state && state.checkboxes && state.checkboxes.hasOwnProperty(i)){
-                  // Load previous state
-                  self.s.data[i] = state.checkboxes[i];
+                  // If checkbox state saving is enabled
+                  if(ctx.aoColumns[i].checkboxes.stateSave){
+                     // Load previous state
+                     self.s.data[i] = state.checkboxes[i];
+                  }
                }
 
                // Store column index for easy column selection later
@@ -373,8 +376,11 @@
                         $.each(self.s.columns, function(index, colIdx){
                            // If state is loaded and contains data for this column
                            if(state && state.checkboxes && state.checkboxes.hasOwnProperty(colIdx)){
-                              // Load previous state
-                              self.s.data[colIdx] = state.checkboxes[colIdx];
+                              // If checkbox state saving is enabled
+                              if(ctx.aoColumns[colIdx].checkboxes.stateSave){
+                                 // Load previous state
+                                 self.s.data[colIdx] = state.checkboxes[colIdx];
+                              }
                            }
                         });
 
@@ -390,8 +396,17 @@
                if(ctx.oFeatures.bStateSave){
                   // Handle state saving event
                   $table.on('stateSaveParams.dt.dtCheckboxes', function (e, settings, data){
-                     // Store data associated with this plug-in
-                     data.checkboxes = self.s.data;
+                     // Initialize array holding checkbox state for each column
+                     data.checkboxes = [];
+
+                     // For every column where checkboxes are enabled
+                     $.each(self.s.columns, function(index, colIdx){
+                        // If checkbox state saving is enabled
+                        if(ctx.aoColumns[colIdx].checkboxes.stateSave){
+                           // Store data associated with this plug-in
+                           data.checkboxes[colIdx] = self.s.data[colIdx];
+                        }
+                     });
                   });
                }
             });
@@ -442,8 +457,11 @@
 
             // If state saving is enabled
             if(ctx.oFeatures.bStateSave){
-               // Save state
-               dt.state.save();
+               // If checkbox state saving is enabled
+               if(ctx.aoColumns[colIdx].checkboxes.stateSave){
+                  // Save state
+                  dt.state.save();
+               }
             }
          }
       },
@@ -871,6 +889,14 @@
    * @static
    */
    Checkboxes.defaults = {
+      /**
+      * Enable / disable checkbox state loading/saving if state saving is enabled globally
+      *
+      * @type {Boolean}
+      * @default `true`
+      */
+      stateSave: true,
+
       /**
       * Enable / disable row selection
       *
