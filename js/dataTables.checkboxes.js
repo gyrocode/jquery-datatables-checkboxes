@@ -1,4 +1,4 @@
-/*! Checkboxes 1.2.10
+/*! Checkboxes 1.2.11-dev
  *  Copyright (c) Gyrocode (www.gyrocode.com)
  *  License: MIT License
  */
@@ -6,7 +6,7 @@
 /**
  * @summary     Checkboxes
  * @description Checkboxes extension for jQuery DataTables
- * @version     1.2.10
+ * @version     1.2.11-dev
  * @file        dataTables.checkboxes.js
  * @author      Gyrocode (http://www.gyrocode.com/projects/jquery-datatables-checkboxes/)
  * @contact     http://www.gyrocode.com/contacts
@@ -392,25 +392,15 @@
                      }
                   });
                }
-
-               // If state saving is enabled
-               if(ctx.oFeatures.bStateSave){
-                  // Handle state saving event
-                  $table.on('stateSaveParams.dt.dtCheckboxes', function (e, settings, data){
-                     // Initialize array holding checkbox state for each column
-                     data.checkboxes = [];
-
-                     // For every column where checkboxes are enabled
-                     $.each(self.s.columns, function(index, colIdx){
-                        // If checkbox state saving is enabled
-                        if(ctx.aoColumns[colIdx].checkboxes.stateSave){
-                           // Store data associated with this plug-in
-                           data.checkboxes[colIdx] = self.s.data[colIdx];
-                        }
-                     });
-                  });
-               }
             });
+
+            // If state saving is enabled
+            if(ctx.oFeatures.bStateSave){
+               // Handle state saving event
+               $table.on('stateSaveParams.dt.dtCheckboxes', function (e, settings, data) {
+                  self.onStateSave(e, settings, data);
+               });
+            }
 
             // Handle table destroy event
             $table.one('destroy.dt.dtCheckboxes', function(){
@@ -677,6 +667,24 @@
 
          $.each(self.s.columns, function(index, colIdx){
             self.updateSelectAll(colIdx);
+         });
+      },
+
+      // Handles state save event
+      onStateSave: function (e, settings, data) {
+         var self = this;
+         var ctx = self.s.ctx;
+
+         // Initialize array holding checkbox state for each column
+         data.checkboxes = [];
+
+         // For every column where checkboxes are enabled
+         $.each(self.s.columns, function(index, colIdx){
+            // If checkbox state saving is enabled
+            if(ctx.aoColumns[colIdx].checkboxes.stateSave){
+               // Store data associated with this plug-in
+               data.checkboxes[colIdx] = self.s.data[colIdx];
+            }
          });
       },
 
@@ -1155,7 +1163,7 @@
    * @name Checkboxes.version
    * @static
    */
-   Checkboxes.version = '1.2.10';
+   Checkboxes.version = '1.2.11-dev';
 
 
 
