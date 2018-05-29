@@ -783,15 +783,6 @@
             return;
          }
 
-         var $output  = $('<span class="select-info"/>');
-         var add = function(name, num){
-            $output.append( $('<span class="select-item"/>').append( dt.i18n(
-               'select.'+name+'s',
-               { _: '%d '+name+'s selected', 0: '', 1: '1 '+name+' selected' },
-               num
-            ) ) );
-         };
-
          // Get index of the first column that has checkbox and row selection enabled
          var colIdx = self.getSelectRowColIndex();
 
@@ -805,11 +796,20 @@
                }
             }
 
-            add('row', countRows);
+            var add = function($el, name, num){
+               $el.append( $('<span class="select-item"/>').append( dt.i18n(
+                  'select.'+name+'s',
+                  { _: '%d '+name+'s selected', 0: '', 1: '1 '+name+' selected' },
+                  num
+               ) ) );
+            };
 
             // Internal knowledge of DataTables to loop over all information elements
             $.each( ctx.aanFeatures.i, function ( i, el ) {
                var $el = $(el);
+
+               var $output  = $('<span class="select-info"/>');
+               add($output, 'row', countRows);
 
                var $existing = $el.children('span.select-info');
                if($existing.length){
