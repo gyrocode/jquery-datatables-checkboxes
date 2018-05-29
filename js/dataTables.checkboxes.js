@@ -1123,30 +1123,43 @@
 
    Api.registerPlural( 'columns().checkboxes.selected()', 'column().checkboxes.selected()', function () {
       return this.iterator( 'column-rows', function ( ctx, colIdx, i, j, rowsIdx ) {
+
          // If Checkboxes extension is enabled for this column
          if(ctx.aoColumns[colIdx].checkboxes){
-            // Prepare a list of all cells
-            var selector = [];
-            $.each(rowsIdx, function(index, rowIdx){
-               selector.push({ row: rowIdx, column: colIdx });
-            });
-
-            // Get all cells data
-            var cells = this.cells(selector);
-            var cellsData = cells.data();
-
             var data = [];
 
-            // Enumerate all cells data
-            $.each(cellsData, function(index, cellData){
-               // If checkbox is checked
-               if(ctx.checkboxes.s.data[colIdx].hasOwnProperty(cellData)){
-                  // If checkbox in the cell can be selected
+            // If server-side processing mode is enabled
+            if(ctx.oFeatures.bServerSide){
+               $.each(ctx.checkboxes.s.data[colIdx], function(cellData){
+                  // If checkbox in the cell can be checked
                   if(ctx.checkboxes.isCellSelectable(colIdx, cellData)){
                      data.push(cellData);
                   }
-               }
-            });
+               });
+
+            // Otherwise, if server-side processing mode is not enabled
+            } else {
+               // Prepare a list of all cells
+               var selector = [];
+               $.each(rowsIdx, function(index, rowIdx){
+                  selector.push({ row: rowIdx, column: colIdx });
+               });
+
+               // Get all cells data
+               var cells = this.cells(selector);
+               var cellsData = cells.data();
+
+               // Enumerate all cells data
+               $.each(cellsData, function(index, cellData){
+                  // If checkbox is checked
+                  if(ctx.checkboxes.s.data[colIdx].hasOwnProperty(cellData)){
+                     // If checkbox in the cell can be selected
+                     if(ctx.checkboxes.isCellSelectable(colIdx, cellData)){
+                        data.push(cellData);
+                     }
+                  }
+               });
+            }
 
             return data;
 
