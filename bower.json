@@ -1,0 +1,21 @@
+{
+   "name": "jquery-datatables-checkboxes",
+   "main": [
+      "js/dataTables.checkboxes.js",
+      "css/dataTables.checkboxes.css"
+   ],
+   "dependencies": {
+      "jquery": ">=1.7",
+      "datatables.net": ">=1.10.8"
+   },
+   "license": "MIT",
+   "keywords": [
+      "jQuery",
+      "DataTables",
+      "checkboxes"
+   ],
+   "ignore": [
+      "/.*",
+      "package.json"
+   ]
+}
