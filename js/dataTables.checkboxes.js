@@ -1,4 +1,4 @@
-/*! Checkboxes 1.2.11-dev
+/*! Checkboxes 1.2.11
  *  Copyright (c) Gyrocode (www.gyrocode.com)
  *  License: MIT License
  */
@@ -6,7 +6,7 @@
 /**
  * @summary     Checkboxes
  * @description Checkboxes extension for jQuery DataTables
- * @version     1.2.11-dev
+ * @version     1.2.11
  * @file        dataTables.checkboxes.js
  * @author      Gyrocode (http://www.gyrocode.com/projects/jquery-datatables-checkboxes/)
  * @contact     http://www.gyrocode.com/contacts
@@ -1217,7 +1217,7 @@
    * @name Checkboxes.version
    * @static
    */
-   Checkboxes.version = '1.2.11-dev';
+   Checkboxes.version = '1.2.11';
 
 
 
