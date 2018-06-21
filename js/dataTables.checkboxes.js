@@ -111,9 +111,6 @@
          var hasCheckboxes = false;
          var hasCheckboxesSelectRow = false;
 
-         // Retrieve stored state
-         var state = dt.state.loaded();
-
          for(var i = 0; i < ctx.aoColumns.length; i++){
             if (ctx.aoColumns[i].checkboxes){
                var $colHeader = $(dt.column(i).header());
@@ -131,7 +128,6 @@
                ctx.aoColumns[i].checkboxes = $.extend(
                   {}, Checkboxes.defaults, ctx.aoColumns[i].checkboxes
                );
-
 
                //
                // OPTIONS
@@ -186,15 +182,6 @@
                self.s.data[i] = {};
                self.s.dataDisabled[i] = {};
 
-               // If state is loaded and contains data for this column
-               if(state && state.checkboxes && state.checkboxes.hasOwnProperty(i)){
-                  // If checkbox state saving is enabled
-                  if(ctx.aoColumns[i].checkboxes.stateSave){
-                     // Load previous state
-                     self.s.data[i] = state.checkboxes[i];
-                  }
-               }
-
                // Store column index for easy column selection later
                self.s.columns.push(i);
 
@@ -217,6 +204,7 @@
                   }
                }
 
+               // If "Select all" control is enabled
                if(ctx.aoColumns[i].checkboxes.selectAll){
                   // Save previous HTML content
                   $colHeader.data('html', $colHeader.html());
@@ -243,8 +231,11 @@
             }
          }
 
-         // If table has at least one checkbox
+         // If table has at least one checkbox column
          if(hasCheckboxes){
+
+            // Load previous state
+            self.loadState();
 
             //
             // EVENT HANDLERS
@@ -259,24 +250,14 @@
                $table.addClass('dt-checkboxes-select');
 
                // Handle event before row is selected/deselected
-               $table.on('user-select.dt.dtCheckboxes', function ( e, dt, type, cell /*, originalEvent*/ ){
-                  var cellIdx = cell.index();
-                  var rowIdx = cellIdx.row;
-                  var colIdx = self.getSelectRowColIndex();
-                  var cellData = dt.cell({ row: rowIdx, column: colIdx }).data();
-
-                  // If checkbox in the cell cannot be checked
-                  if(!self.isCellSelectable(colIdx, cellData)){
-                     // Prevent row selection
-                     e.preventDefault();
-                  }
+               $table.on('user-select.dt.dtCheckboxes', function (e, dt, type, cell , originalEvent){
+                  self.onDataTablesUserSelect(e, dt, type, cell , originalEvent);
                });
 
                // Handle row select/deselect event
                $table.on('select.dt.dtCheckboxes deselect.dt.dtCheckboxes', function(e, api, type, indexes){
-                  self.onSelect(e, type, indexes);
+                  self.onDataTablesSelectDeselect(e, type, indexes);
                });
-
                // Disable Select extension information display
                dt.select.info(false);
 
@@ -291,7 +272,7 @@
 
             // Handle table draw event
             $table.on('draw.dt.dtCheckboxes', function(e){
-               self.onDraw(e);
+               self.onDataTablesDraw(e);
             });
 
             // Handle checkbox click event
@@ -348,81 +329,173 @@
 
             // Handle table initialization event
             $table.on('init.dt.dtCheckboxes', function(){
-               // If server-side processing mode is not enabled
-               // NOTE: Needed to avoid duplicate call to updateStateCheckboxes() in onDraw()
-               if(!ctx.oFeatures.bServerSide){
-
-                  // If state saving is enabled
-                  if(ctx.oFeatures.bStateSave){
-                     self.updateState();
-                  }
-
-                  // Handle Ajax request completion event
-                  // NOTE: Needed to update table state
-                  // if table is reloaded via ajax.reload() API method
-                  $table.on('xhr.dt.dtCheckboxes', function ( /* e, settings , json, xhr */ ) {
-                     // For every column where checkboxes are enabled
-                     $.each(self.s.columns, function(index, colIdx){
-                        // Clear data
-                        self.s.data[colIdx] = {};
-                        self.s.dataDisabled[colIdx] = {};
-                     });
-
-                     // If state saving is enabled
-                     if(ctx.oFeatures.bStateSave){
-                        // Retrieve stored state
-                        var state = dt.state.loaded();
-
-                        // For every column where checkboxes are enabled
-                        $.each(self.s.columns, function(index, colIdx){
-                           // If state is loaded and contains data for this column
-                           if(state && state.checkboxes && state.checkboxes.hasOwnProperty(colIdx)){
-                              // If checkbox state saving is enabled
-                              if(ctx.aoColumns[colIdx].checkboxes.stateSave){
-                                 // Load previous state
-                                 self.s.data[colIdx] = state.checkboxes[colIdx];
-                              }
-                           }
-                        });
-
-                        // Update table state on next redraw
-                        $table.one('draw.dt.dtCheckboxes', function(){
-                           self.updateState();
-                        });
-                     }
-                  });
-               }
+               self.onDataTablesInit();
             });
+
+            // Handle state saving event
+            $table.on('stateSaveParams.dt.dtCheckboxes', function (e, settings, data) {
+               self.onDataTablesStateSave(e, settings, data);
+            });
+
+            // Handle table destroy event
+            $table.one('destroy.dt.dtCheckboxes', function(e, settings){
+               self.onDataTablesDestroy(e, settings);
+            });
+         }
+      },
+
+      // Handles DataTables initialization event
+      onDataTablesInit: function(){
+         var self = this;
+         var dt = self.s.dt;
+         var ctx = self.s.ctx;
+
+         // If server-side processing mode is not enabled
+         // NOTE: Needed to avoid duplicate call to updateStateCheckboxes() in onDataTablesDraw()
+         if(!ctx.oFeatures.bServerSide){
 
             // If state saving is enabled
             if(ctx.oFeatures.bStateSave){
-               // Handle state saving event
-               $table.on('stateSaveParams.dt.dtCheckboxes', function (e, settings, data) {
-                  self.onStateSave(e, settings, data);
-               });
+               self.updateState();
             }
 
-            // Handle table destroy event
-            $table.one('destroy.dt.dtCheckboxes', function(){
-               // Detach event handlers
-               $(document).off('click.dtCheckboxes');
-               $tableContainer.on('.dtCheckboxes');
-               $tableBody.off('.dtCheckboxes');
-               $table.off('.dtCheckboxes');
+            // Handle Ajax request completion event
+            // NOTE: Needed to update table state 
+            // if table is reloaded via ajax.reload() API method
+            $(dt.table().node()).on('xhr.dt.dtCheckboxes', function ( e, settings , json, xhr ) {
+               self.onDataTablesXhr(e. settings, json, xhr);
+            });
+         }
+      },
 
-               // Clear data
-               //
-               // NOTE: Needed only to reduce memory footprint
-               // in case user saves instance of DataTable object.
-               self.s.data = {};
-               self.s.dataDisabled = {};
+      // Handles DataTables user initiated select event
+      onDataTablesUserSelect: function ( e, dt, type, cell /*, originalEvent*/ ){
+         var self = this;
 
-               // Remove added elements
-               $('.dt-checkboxes-select-all', $table).each(function(index, el){
-                  $(el)
-                     .html($(el).data('html'))
-                     .removeClass('dt-checkboxes-select-all');
-               });
+         var cellIdx = cell.index();
+         var rowIdx = cellIdx.row;
+         var colIdx = self.getSelectRowColIndex();
+         var cellData = dt.cell({ row: rowIdx, column: colIdx }).data();
+
+         // If checkbox in the cell cannot be checked
+         if(!self.isCellSelectable(colIdx, cellData)){
+            // Prevent row selection
+            e.preventDefault();
+         }
+      },
+
+      // Handles DataTables row select/deselect event
+      onDataTablesSelectDeselect: function(e, type, indexes){
+         var self = this;
+         var dt = self.s.dt;
+
+         if(self.s.ignoreSelect){ return; }
+
+         if(type === 'row'){
+            // Get index of the first column that has checkbox and row selection enabled
+            var colIdx = self.getSelectRowColIndex();
+            if(colIdx !== null){
+               var cells = dt.cells(indexes, colIdx);
+
+               self.updateData(cells, colIdx, (e.type === 'select') ? true : false);
+               self.updateCheckbox(cells, colIdx, (e.type === 'select') ? true : false);
+               self.updateSelectAll(colIdx);
+            }
+         }
+      },
+
+      // Handles DataTables state save event
+      onDataTablesStateSave: function (e, settings, data) {
+         var self = this;
+         var ctx = self.s.ctx;
+
+         // Initialize array holding checkbox state for each column
+         data.checkboxes = [];
+
+         // For every column where checkboxes are enabled
+         $.each(self.s.columns, function(index, colIdx){
+            // If checkbox state saving is enabled
+            if(ctx.aoColumns[colIdx].checkboxes.stateSave){
+               // Store data associated with this plug-in
+               data.checkboxes[colIdx] = self.s.data[colIdx];
+            }
+         });
+      },
+
+      // Handles DataTables destroy event
+      onDataTablesDestroy: function(){
+         var self = this;
+         var dt = self.s.dt;
+
+         // Get table elements
+         var $table = $(dt.table().node());
+         var $tableBody = $(dt.table().body());
+         var $tableContainer = $(dt.table().container());
+
+         // Detach event handlers
+         $(document).off('click.dtCheckboxes');
+         $tableContainer.off('.dtCheckboxes');
+         $tableBody.off('.dtCheckboxes');
+         $table.off('.dtCheckboxes');
+
+         // Clear data
+         //
+         // NOTE: Needed only to reduce memory footprint
+         // in case user saves instance of DataTable object.
+         self.s.data = {};
+         self.s.dataDisabled = {};
+
+         // Remove added elements
+         $('.dt-checkboxes-select-all', $table).each(function(index, el){
+            $(el)
+               .html($(el).data('html'))
+               .removeClass('dt-checkboxes-select-all');
+         });
+      },
+
+      // Handles DataTables draw event
+      onDataTablesDraw: function(){
+         var self = this;
+         var ctx = self.s.ctx;
+
+         // If server-side processing is enabled
+         // or deferred render is enabled
+         //
+         // TODO: it's not optimal to update state of checkboxes
+         // for already created rows in deferred rendering mode
+         if(ctx.oFeatures.bServerSide || ctx.oFeatures.bDeferRender){
+            self.updateStateCheckboxes({ page: 'current', search: 'none' });
+         }
+
+         $.each(self.s.columns, function(index, colIdx){
+            self.updateSelectAll(colIdx);
+         });
+      },
+
+      // Handles DataTables Ajax request completion event
+      onDataTablesXhr: function( /* e, settings , json, xhr */ ){
+         var self = this;
+         var dt = self.s.dt;
+         var ctx = self.s.ctx;
+
+         // Get table elements
+         var $table = $(dt.table().node());
+
+         // For every column where checkboxes are enabled
+         $.each(self.s.columns, function(index, colIdx){
+            // Reset data
+            self.s.data[colIdx] = {};
+            self.s.dataDisabled[colIdx] = {};
+         });
+
+         // If state saving is enabled
+         if(ctx.oFeatures.bStateSave){
+            // Load previous state
+            self.loadState();
+
+            // Update table state on next redraw
+            $table.one('draw.dt.dtCheckboxes', function(){
+               self.updateState();
             });
          }
       },
@@ -564,7 +637,7 @@
 
          // If row selection is not enabled
          // NOTE: if row selection is enabled, checkbox selection/deselection
-         // would be handled by onSelect event instead
+         // would be handled by onDataTablesSelectDeselect event handler instead
          if(!ctx.aoColumns[colIdx].checkboxes.selectRow){
             cell.checkboxes.select(ctrl.checked);
 
@@ -594,26 +667,6 @@
                   self.updateSelectAll(colIdx);
                }
             }, 0);
-         }
-      },
-
-      // Handles row select/deselect event
-      onSelect: function(e, type, indexes){
-         var self = this;
-         var dt = self.s.dt;
-
-         if(self.s.ignoreSelect){ return; }
-
-         if(type === 'row'){
-            // Get index of the first column that has checkbox and row selection enabled
-            var colIdx = self.getSelectRowColIndex();
-            if(colIdx !== null){
-               var cells = dt.cells(indexes, colIdx);
-
-               self.updateData(cells, colIdx, (e.type === 'select') ? true : false);
-               self.updateCheckbox(cells, colIdx, (e.type === 'select') ? true : false);
-               self.updateSelectAll(colIdx);
-            }
          }
       },
 
@@ -651,41 +704,29 @@
          e.stopPropagation();
       },
 
-      // Handles table draw event
-      onDraw: function(){
+      // Loads previosly saved sate
+      loadState: function () {
          var self = this;
+         var dt = self.s.dt;
          var ctx = self.s.ctx;
 
-         // If server-side processing is enabled
-         // or deferred render is enabled
-         //
-         // TODO: it's not optimal to update state of checkboxes
-         // for already created rows in deferred rendering mode
-         if(ctx.oFeatures.bServerSide || ctx.oFeatures.bDeferRender){
-            self.updateStateCheckboxes({ page: 'current', search: 'none' });
+         // If state saving is enabled
+         if(ctx.oFeatures.bStateSave){
+            // Retrieve stored state
+            var state = dt.state.loaded();
+
+            // For every column where checkboxes are enabled
+            $.each(self.s.columns, function(index, colIdx){
+               // If state is loaded and contains data for this column
+               if(state && state.checkboxes && state.checkboxes.hasOwnProperty(colIdx)){
+                  // If checkbox state saving is enabled
+                  if(ctx.aoColumns[colIdx].checkboxes.stateSave){
+                     // Load previous state
+                     self.s.data[colIdx] = state.checkboxes[colIdx];
+                  }
+               }
+            });
          }
-
-         $.each(self.s.columns, function(index, colIdx){
-            self.updateSelectAll(colIdx);
-         });
-      },
-
-      // Handles state save event
-      onStateSave: function (e, settings, data) {
-         var self = this;
-         var ctx = self.s.ctx;
-
-         // Initialize array holding checkbox state for each column
-         data.checkboxes = [];
-
-         // For every column where checkboxes are enabled
-         $.each(self.s.columns, function(index, colIdx){
-            // If checkbox state saving is enabled
-            if(ctx.aoColumns[colIdx].checkboxes.stateSave){
-               // Store data associated with this plug-in
-               data.checkboxes[colIdx] = self.s.data[colIdx];
-            }
-         });
       },
 
       // Updates state of the "Select all" controls
