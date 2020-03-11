@@ -46,6 +46,12 @@ Retrieves row.data() for selected checkboxes in columns.
 This feature is usefull especially when serverSide is enabled and
 selected row data from other pages than the current one is needed.
 
+Turned Off
+hardcoded ````colOptions{'searchable': false}```` because it is usefull to search on a column and is
+not changing plugins behaviour. ````orderable```` column option is still hardcoded to ````false```` but
+only because the ````.dt-checkboxes-select-all```` input is not properly aligned being used with
+DataTable column order icon.
+Could be used if ````selectAllRender```` option is ````false````, i think....
 
 Renamed local variabiles to reflect more accurate the content of them:
 cellsData to pluginIds
