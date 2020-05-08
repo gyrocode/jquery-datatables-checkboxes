@@ -1,15 +1,16 @@
 {
   "name": "jquery-datatables-checkboxes",
-  "version": "1.2.11",
+  "title": "jQuery DataTables Checkboxes",
+  "version": "1.2.12-dev",
   "description": "Checkboxes is an extension for the jQuery DataTables library that provides universal solution for working with checkboxes in a table.",
-  "main": "./js/dataTables.checkboxes.js",
+  "main": "js/dataTables.checkboxes.js",
   "keywords": [
     "jQuery",
     "DataTables",
     "checkboxes"
   ],
   "author": {
-    "name": "Gyrocode",
+    "name": "Gyrocode LLC",
     "url": "https://www.gyrocode.com"
   },
   "license": "MIT",
@@ -17,6 +18,14 @@
     "url": "https://github.com/gyrocode/jquery-datatables-checkboxes/issues"
   },
   "homepage": "https://www.gyrocode.com/projects/jquery-datatables-checkboxes/",
+  "devDependencies": {
+    "grunt": "^1.1.0",
+    "grunt-cli": "latest",
+    "grunt-contrib-jshint": "latest",
+    "grunt-contrib-uglify": "latest",
+    "grunt-contrib-watch": "latest",
+    "grunt-usemin": "latest"
+  },
   "dependencies": {
     "jquery": ">=1.7",
     "datatables.net": ">=1.10.8"
