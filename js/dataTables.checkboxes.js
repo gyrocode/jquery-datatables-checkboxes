@@ -794,7 +794,9 @@
                $checkboxesSelectAll.data('is-changed', false);
 
                $checkboxesSelectAll.prop({
-                  'checked': isSelected,
+                  // NOTE: If checkbox has indeterminate state, 
+                  // "checked" property must be set to false.
+                  'checked': isIndeterminate ? false : isSelected,
                   'indeterminate': isIndeterminate
                });
 
