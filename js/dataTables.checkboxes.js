@@ -322,7 +322,12 @@
 
             // Handle table initialization event
             $table.on('init.dt.dtCheckboxes', function(){
-               self.onDataTablesInit();
+               // Use delay to handle initialization event
+               // because certain extensions (FixedColumns) are initialized
+               // only when initialization event is triggered.
+               setTimeout(function(){
+                   self.onDataTablesInit();
+               }, 0);
             });
 
             // Handle state saving event
@@ -462,7 +467,7 @@
 
          $.each(self.s.columns, function(index, colIdx){
             self.updateSelectAll(colIdx);
-         });
+         });         
       },
 
       // Handles DataTables Ajax request completion event
@@ -565,12 +570,22 @@
       // Update table state
       updateState: function(){
          var self = this;
+         var dt = self.s.dt;
+         var ctx = self.s.ctx;
 
          self.updateStateCheckboxes({ page: 'all', search: 'none' });
 
-         $.each(self.s.columns, function(index, colIdx){
-            self.updateSelectAll(colIdx);
-         });
+         // If FixedColumns extension is enabled
+         if(ctx._oFixedColumns){                   
+            // Use delay to let FixedColumns construct the header
+            // before we update the "Select all" checkbox
+            setTimeout(function(){
+               // For every column where checkboxes are enabled
+               $.each(self.s.columns, function(index, colIdx){
+                  self.updateSelectAll(colIdx);
+               });
+            }, 0);
+         }
       },
 
       // Updates state of multiple checkboxes
@@ -919,8 +934,19 @@
          if(ctx._oFixedColumns){
             var leftCols = ctx._oFixedColumns.s.iLeftColumns;
             var rightCols = ctx.aoColumns.length - ctx._oFixedColumns.s.iRightColumns - 1;
+
             if (colIdx < leftCols || colIdx > rightCols){
+               // Update the data shown in the fixed column
                dt.fixedColumns().update();
+
+               // Use delay to let FixedColumns construct the header
+               // before we update the "Select all" checkbox
+               setTimeout(function(){
+                  // For every column where checkboxes are enabled
+                  $.each(self.s.columns, function(index, colIdx){
+                     self.updateSelectAll(colIdx);
+                  });
+               }, 0);
             }
          }
       }
@@ -1039,15 +1065,7 @@
                ctx.checkboxes.updateSelect(rowsSelectableIdx, state);
             }
 
-            // If FixedColumns extension is enabled
-            if(ctx._oFixedColumns){
-               // Use timeout to let FixedColumns construct the header
-               // before we update the "Select all" checkbox
-               setTimeout(function(){ ctx.checkboxes.updateSelectAll(colIdx); }, 0);
-
-            } else {
-               ctx.checkboxes.updateSelectAll(colIdx);
-            }
+            ctx.checkboxes.updateSelectAll(colIdx);
 
             ctx.checkboxes.updateFixedColumn(colIdx);
          }
@@ -1073,15 +1091,7 @@
                   ctx.checkboxes.updateSelect(rowIdx, state);
                }
 
-               // If FixedColumns extension is enabled
-               if(ctx._oFixedColumns){
-                  // Use timeout to let FixedColumns construct the header
-                  // before we update the "Select all" checkbox
-                  setTimeout(function(){ ctx.checkboxes.updateSelectAll(colIdx); }, 0);
-
-               } else {
-                  ctx.checkboxes.updateSelectAll(colIdx);
-               }
+               ctx.checkboxes.updateSelectAll(colIdx);
 
                ctx.checkboxes.updateFixedColumn(colIdx);
             }
