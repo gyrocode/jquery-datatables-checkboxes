@@ -2,7 +2,7 @@
  * jQuery DataTables Checkboxes (https://www.gyrocode.com/projects/jquery-datatables-checkboxes/)
  * Checkboxes extension for jQuery DataTables
  *
- * @version     1.2.12
+ * @version     1.2.13-dev
  * @author      Gyrocode LLC (https://www.gyrocode.com)
  * @copyright   (c) Gyrocode LLC
  * @license     MIT
@@ -608,13 +608,13 @@
 
             // If checkbox is checked
             if(ctx.checkboxes.s.data[colIdx].hasOwnProperty(cellData)){
-               self.updateCheckbox(this, colIdx, true);
-
                // If row selection is enabled
                // and checkbox can be checked
                if(ctx.aoColumns[colIdx].checkboxes.selectRow && isCellSelectable){
                   self.updateSelect(rowIdx, true);
                }
+
+               self.updateCheckbox(this, colIdx, true);
             }
 
             // If checkbox is disabled
@@ -1062,12 +1062,13 @@
             cells = this.cells(selector);
 
             ctx.checkboxes.updateData(cells, colIdx, state);
-            ctx.checkboxes.updateCheckbox(cells, colIdx, state);
 
             // If row selection is enabled
             if(ctx.aoColumns[colIdx].checkboxes.selectRow){
                ctx.checkboxes.updateSelect(rowsSelectableIdx, state);
             }
+
+            ctx.checkboxes.updateCheckbox(cells, colIdx, state);
 
             ctx.checkboxes.updateSelectAll(colIdx);
 
@@ -1088,12 +1089,13 @@
             // If checkbox in the cell can be selected
             if(ctx.checkboxes.isCellSelectable(colIdx, cellData)){
                ctx.checkboxes.updateData(cells, colIdx, state);
-               ctx.checkboxes.updateCheckbox(cells, colIdx, state);
 
                // If row selection is enabled
                if(ctx.aoColumns[colIdx].checkboxes.selectRow){
                   ctx.checkboxes.updateSelect(rowIdx, state);
                }
+
+               ctx.checkboxes.updateCheckbox(cells, colIdx, state);
 
                ctx.checkboxes.updateSelectAll(colIdx);
 
@@ -1226,7 +1228,7 @@
     * @name Checkboxes.version
     * @static
     */
-   Checkboxes.version = '1.2.12';
+   Checkboxes.version = '1.2.13-dev';
 
 
 
