@@ -251,16 +251,20 @@
                $table.on('select.dt.dtCheckboxes deselect.dt.dtCheckboxes', function(e, api, type, indexes){
                   self.onDataTablesSelectDeselect(e, type, indexes);
                });
-               // Disable Select extension information display
-               dt.select.info(false);
 
-               // Update the table information element with selected item summary
-               //
-               // NOTE: Needed to display correct count of selected rows
-               // when using server-side processing mode
-               $table.on('draw.dt.dtCheckboxes select.dt.dtCheckboxes deselect.dt.dtCheckboxes', function(){
-                  self.showInfoSelected();
-               });
+               // If displaying of Select extension information is enabled
+               if(ctx._select.info){
+                  // Disable Select extension information display
+                  dt.select.info(false);
+
+                  // Update the table information element with selected item summary
+                  //
+                  // NOTE: Needed to display correct count of selected rows
+                  // when using server-side processing mode
+                  $table.on('draw.dt.dtCheckboxes select.dt.dtCheckboxes deselect.dt.dtCheckboxes', function(){
+                     self.showInfoSelected();
+                  });
+               }
             }
 
             // Handle table draw event
