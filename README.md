@@ -33,7 +33,7 @@ Documentation is available at
 Copyright
 ---------
 
-Gyrocode, [gyrocode.com](https://www.gyrocode.com)
+Gyrocode LLC, [gyrocode.com](https://www.gyrocode.com)
 
 
 License
