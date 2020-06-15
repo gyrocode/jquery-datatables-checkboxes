@@ -1,8 +1,8 @@
-Gruntfile.js
-bower.json
-bower_components
-package-lock.json
 .eslintignore
 .eslintrc
-.jslintrc
 .gitignore
+.jshintrc
+bower.json
+bower_components
+Gruntfile.js
+package-lock.json
