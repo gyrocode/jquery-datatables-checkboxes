@@ -67,8 +67,8 @@
       this.s = {
          dt: new DataTable.Api( settings ),
          columns: [],
-         data: [],
-         dataDisabled: [],
+         data: {},
+         dataDisabled: {},
          ignoreSelect: false
       };
 
@@ -607,7 +607,10 @@
             var isCellSelectable = self.isCellSelectable(colIdx, cellData);
 
             // If checkbox is checked
-            if(ctx.checkboxes.s.data[colIdx].hasOwnProperty(cellData)){
+            if(
+               Object.prototype.hasOwnProperty.call(ctx.checkboxes.s.data, colIdx)
+               && Object.prototype.hasOwnProperty.call(ctx.checkboxes.s.data[colIdx], cellData)
+            ) {
                // If row selection is enabled
                // and checkbox can be checked
                if(ctx.aoColumns[colIdx].checkboxes.selectRow && isCellSelectable){
@@ -671,7 +674,10 @@
                var cellData = cell.data();
 
                // Determine whether data is in the list
-               var hasData = self.s.data[colIdx].hasOwnProperty(cellData);
+               var hasData = (
+                  Object.prototype.hasOwnProperty.call(self.s.data, colIdx)
+                  && Object.prototype.hasOwnProperty.call(self.s.data[colIdx], cellData)
+               );
 
                // If state of the checkbox needs to be updated
                if(hasData !== ctrl.checked){
@@ -768,7 +774,12 @@
             $.each(cellsData, function(index, cellData){
                // If checkbox is not disabled
                if(self.isCellSelectable(colIdx, cellData)){
-                  if(self.s.data[colIdx].hasOwnProperty(cellData)){ countChecked++; }
+                  if(
+                     Object.prototype.hasOwnProperty.call(self.s.data, colIdx)
+                     && Object.prototype.hasOwnProperty.call(self.s.data[colIdx], cellData)
+                  ) {
+                     countChecked++;
+                  }
 
                // Otherwise, if checkbox is disabled
                } else {
@@ -846,7 +857,10 @@
             // Count number of selected rows
             var countRows = 0;
             for (var cellData in ctx.checkboxes.s.data[colIdx]){
-               if (ctx.checkboxes.s.data[colIdx].hasOwnProperty(cellData)){
+               if(
+                  Object.prototype.hasOwnProperty.call(ctx.checkboxes.s.data, colIdx)
+                  && Object.prototype.hasOwnProperty.call(ctx.checkboxes.s.data[colIdx], cellData)
+               ) {
                   countRows++;
                }
             }
@@ -884,7 +898,10 @@
          var ctx = self.s.ctx;
 
          // If data is in the list of disabled elements
-         if(ctx.checkboxes.s.dataDisabled[colIdx].hasOwnProperty(cellData)){
+         if(
+            Object.prototype.hasOwnProperty.call(ctx.checkboxes.s.dataDisabled, colIdx)
+            && Object.prototype.hasOwnProperty.call(ctx.checkboxes.s.dataDisabled[colIdx], cellData)
+         ) {
             return false;
 
          // Otherwise, if checkbox can be selected
@@ -1136,7 +1153,10 @@
             // and checkbox can be checked
             if(ctx.aoColumns[colIdx].checkboxes.selectRow){
                // If data is in the list
-               if(ctx.checkboxes.s.data[colIdx].hasOwnProperty(cellData)){
+               if(
+                  Object.prototype.hasOwnProperty.call(ctx.checkboxes.s.data, colIdx)
+                  && Object.prototype.hasOwnProperty.call(ctx.checkboxes.s.data[colIdx], cellData)
+               ) {
                   // Update selection based on current state:
                   // if checkbox is enabled then select row;
                   // otherwise, deselect row
@@ -1204,7 +1224,10 @@
                // Enumerate all cells data
                $.each(cellsData, function(index, cellData){
                   // If checkbox is checked
-                  if(ctx.checkboxes.s.data[colIdx].hasOwnProperty(cellData)){
+                  if(
+                     Object.prototype.hasOwnProperty.call(ctx.checkboxes.s.data, colIdx)
+                     && Object.prototype.hasOwnProperty.call(ctx.checkboxes.s.data[colIdx], cellData)
+                  ) {
                      // If checkbox in the cell can be selected
                      if(ctx.checkboxes.isCellSelectable(colIdx, cellData)){
                         data.push(cellData);
