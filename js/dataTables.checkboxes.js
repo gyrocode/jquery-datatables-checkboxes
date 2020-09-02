@@ -411,14 +411,17 @@
          var self = this;
          var ctx = self.s.ctx;
 
-         // Initialize array holding checkbox state for each column
-         data.checkboxes = [];
-
          // For every column where checkboxes are enabled
          $.each(self.s.columns, function(index, colIdx){
             // If checkbox state saving is enabled
             if(ctx.aoColumns[colIdx].checkboxes.stateSave){
-               // Store data associated with this plug-in
+               // If checkboxes state hasn't been saved before
+               if(!Object.prototype.hasOwnProperty.call(data, 'checkboxes')){
+                  // Initialize array to save checkboxes state for each column
+                  data.checkboxes = [];
+               }
+
+               // Save checkboxes state
                data.checkboxes[colIdx] = self.s.data[colIdx];
             }
          });
