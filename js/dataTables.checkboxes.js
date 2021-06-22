@@ -1,4 +1,4 @@
-/*! 
+/*!
  * jQuery DataTables Checkboxes (https://www.gyrocode.com/projects/jquery-datatables-checkboxes/)
  * Checkboxes extension for jQuery DataTables
  *
@@ -362,7 +362,7 @@
             }
 
             // Handle Ajax request completion event
-            // NOTE: Needed to update table state 
+            // NOTE: Needed to update table state
             // if table is reloaded via ajax.reload() API method
             $(dt.table().node()).on('xhr.dt.dtCheckboxes', function ( e, settings , json, xhr ) {
                self.onDataTablesXhr(e. settings, json, xhr);
@@ -474,7 +474,7 @@
 
          $.each(self.s.columns, function(index, colIdx){
             self.updateSelectAll(colIdx);
-         });         
+         });
       },
 
       // Handles DataTables Ajax request completion event
@@ -583,7 +583,7 @@
          self.updateStateCheckboxes({ page: 'all', search: 'none' });
 
          // If FixedColumns extension is enabled
-         if(ctx._oFixedColumns){                   
+         if(ctx._oFixedColumns){
             // Use delay to let FixedColumns construct the header
             // before we update the "Select all" checkbox
             setTimeout(function(){
@@ -652,6 +652,7 @@
          var cell    = dt.cell(cellSelector);
          var cellIdx = cell.index();
          var colIdx  = cellIdx.column;
+         var rowIdx  = cellIdx.row;
 
          // If row selection is not enabled
          // NOTE: if row selection is enabled, checkbox selection/deselection
@@ -663,31 +664,50 @@
             e.stopPropagation();
 
          } else {
-            // WORKAROUND:
-            // Select extension may keep the row selected
-            // when checkbox is unchecked with SHIFT key.
-            //
-            // We need to update the state of the checkbox AFTER handling
-            // select/deselect event from Select extension.
-            //
-            // Call to setTimeout is needed to let select/deselect event handler
-            // update the data first.
-            setTimeout(function(){
-               // Get cell data
-               var cellData = cell.data();
 
-               // Determine whether data is in the list
-               var hasData = (
-                  Object.prototype.hasOwnProperty.call(self.s.data, colIdx)
-                  && Object.prototype.hasOwnProperty.call(self.s.data[colIdx], cellData)
-               );
+            // If Select extension is enabled
+            if(ctx._select){
+               // If style is set to "os"
+               if(ctx._select.style === 'os'){
 
-               // If state of the checkbox needs to be updated
-               if(hasData !== ctrl.checked){
-                  self.updateCheckbox(cell, colIdx, hasData);
-                  self.updateSelectAll(colIdx);
+                  // WORKAROUND:
+                  // See https://github.com/gyrocode/jquery-datatables-checkboxes/issues/128
+
+                  // Prevent click event from propagating to parent
+                  e.stopPropagation();
+
+                  // Select/deselect individual row
+                  cell.checkboxes.select(ctrl.checked);
+
+               // Otherwise, if style is set to other than "os"
+               } else {
+                  // WORKAROUND:
+                  // Select extension may keep the row selected
+                  // when checkbox is unchecked with SHIFT key.
+                  //
+                  // We need to update the state of the checkbox AFTER handling
+                  // select/deselect event from Select extension.
+                  //
+                  // Call to setTimeout is needed to let select/deselect event handler
+                  // update the data first.
+                  setTimeout(function(){
+                     // Get cell data
+                     var cellData = cell.data();
+
+                     // Determine whether data is in the list
+                     var hasData = (
+                        Object.prototype.hasOwnProperty.call(self.s.data, colIdx)
+                        && Object.prototype.hasOwnProperty.call(self.s.data[colIdx], cellData)
+                     );
+
+                     // If state of the checkbox needs to be updated
+                     if(hasData !== ctrl.checked){
+                        self.updateCheckbox(cell, colIdx, hasData);
+                        self.updateSelectAll(colIdx);
+                     }
+                  }, 0);
                }
-            }, 0);
+            }
          }
       },
 
@@ -827,7 +847,7 @@
                $checkboxesSelectAll.data('is-changed', false);
 
                $checkboxesSelectAll.prop({
-                  // NOTE: If checkbox has indeterminate state, 
+                  // NOTE: If checkbox has indeterminate state,
                   // "checked" property must be set to false.
                   'checked': isIndeterminate ? false : isSelected,
                   'indeterminate': isIndeterminate
