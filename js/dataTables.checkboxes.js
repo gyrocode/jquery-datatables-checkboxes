@@ -127,14 +127,19 @@
                //
 
                var colOptions = {
-                  'searchable': false,
-                  'orderable': false
+                  'searchable': false
                };
 
                if(ctx.aoColumns[i].sClass === ''){
                   colOptions['className'] = 'dt-checkboxes-cell';
                } else {
                   colOptions['className'] = ctx.aoColumns[i].sClass + ' dt-checkboxes-cell';
+               }
+
+               if(ctx.aoColumns[i].orderable === true){
+                  colOptions['orderable'] = true;
+               } else {
+                  colOptions['orderable'] = false;
                }
 
                if(ctx.aoColumns[i].sWidthOrig === null){
