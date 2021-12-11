@@ -143,7 +143,14 @@
 
                if(ctx.aoColumns[i].mRender === null){
                   colOptions['render'] = function(){
-                     return '<input type="checkbox" class="dt-checkboxes" autocomplete="off">';
+                     var selectHtml;
+                     if($.isFunction(Checkboxes.defaults.selectRender)){
+                        selectHtml = Checkboxes.defaults.selectRender();
+                     // Otherwise, if "selectRender" option is a string
+                     } else if(typeof Checkboxes.defaults.selectRender === 'string'){
+                        selectHtml = Checkboxes.defaults.selectRender;
+                     }
+                     return selectHtml;
                   };
                }
 
@@ -1052,6 +1059,16 @@
       * @default  `null`
       */
       selectAllCallback: null,
+
+
+      /**
+      * "Select" control markup
+      *
+      * @type {mixed}
+      * @default `<input type="checkbox">`
+      */
+      selectRender: '<input type="checkbox" autocomplete="off" class="dt-checkboxes">',
+
 
       /**
       * "Select all" control markup
