@@ -221,6 +221,14 @@
                         .attr('data-col', i);
                   }
                }
+
+               // Initial checkbox selection
+               if(ctx.aoColumns[i].checkboxes.initialSelectionArray){
+                  for (var arrayIndex = 0; arrayIndex < ctx.aoColumns[i].checkboxes.initialSelectionArray.length; ++arrayIndex) {
+                     var cellData = ctx.aoColumns[i].checkboxes.initialSelectionArray[arrayIndex];
+                     ctx.checkboxes.s.data[i][cellData] = 1;
+                  }
+               }
             }
          }
 
