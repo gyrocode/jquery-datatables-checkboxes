@@ -2,7 +2,7 @@
  * jQuery DataTables Checkboxes (https://www.gyrocode.com/projects/jquery-datatables-checkboxes/)
  * Checkboxes extension for jQuery DataTables
  *
- * @version     1.2.13
+ * @version     1.2.14
  * @author      Gyrocode LLC (https://www.gyrocode.com)
  * @copyright   (c) Gyrocode LLC
  * @license     MIT
@@ -1274,7 +1274,7 @@
     * @name Checkboxes.version
     * @static
     */
-   Checkboxes.version = '1.2.13';
+   Checkboxes.version = '1.2.14';
 
 
 
