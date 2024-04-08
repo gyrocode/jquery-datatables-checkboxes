@@ -726,7 +726,8 @@
          var self = this;
          var ctx = self.s.ctx;
 
-         var cellNodes = cells.nodes();
+         // updateStateCheckboxes / onDataTablesSelectDeselect
+         var cellNodes = cells.nodes ? cells.nodes(): [cells.node()];
          if(cellNodes.length){
             $('input.dt-checkboxes', cellNodes).not(':disabled').prop('checked', isSelected);
 
