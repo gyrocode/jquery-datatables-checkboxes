@@ -1032,7 +1032,7 @@
          var dt = self.s.dt;
          var ctx = self.s.ctx;
 
-         if ( ! ctx.aanFeatures.i ) {
+         if ( ! (ctx.oFeatures.bInfo || ctx.aanFeatures.i) ) {
             return;
          }
 
@@ -1058,23 +1058,27 @@
                   { _: '%d '+name+'s selected', 0: '', 1: '1 '+name+' selected' },
                   num
                ) ) );
-            };
-
+            }, infoFeatures;
+            if (ctx.aanFeatures.i) {
+                infoFeatures = ctx.aanFeatures.i;
+            } else if (ctx.oClasses) {
+                infoFeatures = ["." + ctx.oClasses.info.container];
+            }
             // Internal knowledge of DataTables to loop over all information elements
-            $.each( ctx.aanFeatures.i, function ( i, el ) {
-               var $el = $(el);
+            $.each(infoFeatures, function (i, el) {
+                var $el = $(el);
 
-               var $output  = $('<span class="select-info"/>');
-               add($output, 'row', countRows);
+                var $output = $('<span class="select-info"/>');
+                add($output, 'row', countRows);
 
-               var $existing = $el.children('span.select-info');
-               if($existing.length){
-                  $existing.remove();
-               }
+                var $existing = $el.children('span.select-info');
+                if ($existing.length) {
+                    $existing.remove();
+                }
 
-               if($output.text() !== ''){
-                  $el.append($output);
-               }
+                if ($output.text() !== '') {
+                    $el.append($output);
+                }
             });
          }
       },
