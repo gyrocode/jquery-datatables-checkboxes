@@ -148,7 +148,7 @@
                }
 
                // datatables >2.0.0
-               if (!DataTable.ext.intenal) {
+               if (DataTable.versionCheck('2')) {
                   self._fnColumnOptions(ctx, i, colOptions);
                } else {
                   DataTable.ext.internal._fnColumnOptions(ctx, i, colOptions);
