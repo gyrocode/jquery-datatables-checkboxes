@@ -565,6 +565,13 @@
                self.updateData(cells, colIdx, (e.type === 'select') ? true : false);
                self.updateCheckbox(cells, colIdx, (e.type === 'select') ? true : false);
                self.updateSelectAll(colIdx);
+               // Events allow you to execute the callback dt.column([index]).checkboxes.selected()
+               // when the data is already updated.
+               // The function of events is to allow updating the state of buttons after selecting
+               // and updating the selected checkboxes.
+               if ($.inArray(e.type, ['select', 'deselect']) != -1) {
+                   dt.trigger(e.type +'.dtcheckboxes', [self, cells]);
+               }
             }
          }
       },
