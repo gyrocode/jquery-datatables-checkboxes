@@ -161,7 +161,7 @@
                $colHeader.off('.dt');
 
                // If table has data source other than Ajax
-               if(ctx.sAjaxSource === null){
+               if(ctx.sAjaxSource === null || ctx.ajax == null){
                   // WORKAROUND: Invalidate column data
                   var cells = dt.cells('tr', i);
                   cells.invalidate('data');
