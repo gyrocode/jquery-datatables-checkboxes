@@ -147,8 +147,12 @@
                   };
                }
 
-               DataTable.ext.internal._fnColumnOptions(ctx, i, colOptions);
-
+               // datatables >2.0.0
+               if (DataTable.versionCheck('2')) {
+                  self._fnColumnOptions(ctx, i, colOptions);
+               } else {
+                  DataTable.ext.internal._fnColumnOptions(ctx, i, colOptions);
+               }
 
                // WORKAROUND: Remove "sorting" class
                $colHeader.removeClass('sorting');
@@ -157,7 +161,7 @@
                $colHeader.off('.dt');
 
                // If table has data source other than Ajax
-               if(ctx.sAjaxSource === null){
+               if(ctx.sAjaxSource === null || ctx.ajax == null){
                   // WORKAROUND: Invalidate column data
                   var cells = dt.cells('tr', i);
                   cells.invalidate('data');
@@ -345,6 +349,165 @@
             });
          }
       },
+	/**
+	 * Provide backwards compatibility for column options. Note that the new options
+	 * are mapped onto the old parameters, so this is an external interface change
+	 * only.
+	 *  @param {object} init Object to map
+	 */
+	_fnCompatCols: function( init )
+	{
+		this._fnCompatMap( init, 'orderable',     'bSortable' );
+        this._fnCompatMap( init, 'render',        'mRender' );
+		this._fnCompatMap( init, 'orderData',     'aDataSort' );
+		this._fnCompatMap( init, 'orderSequence', 'asSorting' );
+		this._fnCompatMap( init, 'orderDataType', 'sortDataType' );
+
+		// orderData can be given as an integer
+		var dataSort = init.aDataSort;
+		if ( typeof dataSort === 'number' && ! Array.isArray( dataSort ) ) {
+			init.aDataSort = [ dataSort ];
+		}
+	},
+   /**
+	 * Map one parameter onto another
+	 *  @param {object} o Object to map
+	 *  @param {*} knew The new parameter name
+	 *  @param {*} old The old parameter name
+	 */
+	_fnCompatMap: function ( o, knew, old ) {
+		if ( o[ knew ] !== undefined ) {
+			o[ old ] = o[ knew ];
+		}
+	},
+
+   /**
+    * See if a property is defined on one object, if so assign it to the other object
+    *  @param {object} ret target object
+    *  @param {object} src source object
+    *  @param {string} name property
+    *  @param {string} [mappedName] name to map too - optional, name used if not given
+    *  @memberof DataTable#oApi
+    */
+   _fnMap: function (ret, src, name, mappedName) {
+      if (Array.isArray(name)) {
+         $.each(name, function (i, val) {
+            if (Array.isArray(val)) {
+               _fnMap(ret, src, val[0], val[1]);
+            } else {
+               _fnMap(ret, src, val);
+            }
+         });
+
+         return;
+      }
+
+      if (mappedName === undefined) {
+         mappedName = name;
+      }
+
+      if (src[name] !== undefined) {
+         ret[mappedName] = src[name];
+      }
+   },
+   /**
+    * Apply options for a column
+    *  @param {object} oSettings dataTables settings object
+    *  @param {int} iCol column index to consider
+    *  @param {object} oOptions object with sType, bVisible and bSearchable etc
+    *  @memberof DataTable#oApi
+    */
+   _fnColumnOptions: function (oSettings, iCol, oOptions) {
+      var oCol = oSettings.aoColumns[iCol];
+
+      /* User specified column options */
+      if (oOptions !== undefined && oOptions !== null) {
+         // Backwards compatibility
+         this._fnCompatCols(oOptions);
+
+         // Map camel case parameters to their Hungarian counterparts
+         //_fnCamelToHungarian(DataTable.defaults.column, oOptions, true);
+
+         /* Backwards compatibility for mDataProp */
+         if (oOptions.mDataProp !== undefined && !oOptions.mData) {
+            oOptions.mData = oOptions.mDataProp;
+         }
+
+         if (oOptions.sType) {
+            oCol._sManualType = oOptions.sType;
+         }
+
+         // `class` is a reserved word in Javascript, so we need to provide
+         // the ability to use a valid name for the camel case input
+         if (oOptions.className && !oOptions.sClass) {
+            oOptions.sClass = oOptions.className;
+         }
+
+         var origClass = oCol.sClass;
+
+         $.extend(oCol, oOptions);
+         this._fnMap(oCol, oOptions, 'sWidth', 'sWidthOrig');
+
+         // Merge class from previously defined classes with this one, rather than just
+         // overwriting it in the extend above
+         if (origClass !== oCol.sClass) {
+            oCol.sClass = origClass + ' ' + oCol.sClass;
+         }
+
+         /* iDataSort to be applied (backwards compatibility), but aDataSort will take
+          * priority if defined
+          */
+         if (oOptions.iDataSort !== undefined) {
+            oCol.aDataSort = [oOptions.iDataSort];
+         }
+         this._fnMap(oCol, oOptions, 'aDataSort');
+      }
+
+      /* Cache the data get and set functions for speed */
+      var mDataSrc = oCol.mData;
+      var mData = DataTable.util.get(mDataSrc);
+
+      // The `render` option can be given as an array to access the helper rendering methods.
+      // The first element is the rendering method to use, the rest are the parameters to pass
+      if (oCol.mRender && Array.isArray(oCol.mRender)) {
+         var copy = oCol.mRender.slice();
+         var name = copy.shift();
+
+         oCol.mRender = DataTable.render[name].apply(window, copy);
+      }
+
+      oCol._render = oCol.mRender ? DataTable.util.get(oCol.mRender) : null;
+
+      var attrTest = function (src) {
+         return typeof src === 'string' && src.indexOf('@') !== -1;
+      };
+      oCol._bAttrSrc = $.isPlainObject(mDataSrc) && (
+          attrTest(mDataSrc.sort) || attrTest(mDataSrc.type) || attrTest(mDataSrc.filter)
+      );
+      oCol._setter = null;
+
+      oCol.fnGetData = function (rowData, type, meta) {
+         var innerData = mData(rowData, type, undefined, meta);
+
+         return oCol._render && type ?
+             oCol._render(innerData, type, rowData, meta) :
+             innerData;
+      };
+      oCol.fnSetData = function (rowData, val, meta) {
+         return DataTable.util.set(mDataSrc)(rowData, val, meta);
+      };
+
+      // Indicate if DataTables should read DOM data as an object or array
+      // Used in _fnGetRowElements
+      if (typeof mDataSrc !== 'number' && !oCol._isArrayHost) {
+         oSettings._rowReadObject = true;
+      }
+
+      /* Feature sorting overrides column specific when off */
+      if (!oSettings.oFeatures.bSort) {
+         oCol.bSortable = false;
+      }
+   },
 
       // Handles DataTables initialization event
       onDataTablesInit: function(){
@@ -402,6 +565,13 @@
                self.updateData(cells, colIdx, (e.type === 'select') ? true : false);
                self.updateCheckbox(cells, colIdx, (e.type === 'select') ? true : false);
                self.updateSelectAll(colIdx);
+               // Events allow you to execute the callback dt.column([index]).checkboxes.selected()
+               // when the data is already updated.
+               // The function of events is to allow updating the state of buttons after selecting
+               // and updating the selected checkboxes.
+               if ($.inArray(e.type, ['select', 'deselect']) != -1) {
+                   dt.trigger(e.type +'.dtcheckboxes', [self, cells]);
+               }
             }
          }
       },
@@ -563,7 +733,8 @@
          var self = this;
          var ctx = self.s.ctx;
 
-         var cellNodes = cells.nodes();
+         // updateStateCheckboxes / onDataTablesSelectDeselect
+         var cellNodes = cells.nodes ? cells.nodes(): [cells.node()];
          if(cellNodes.length){
             $('input.dt-checkboxes', cellNodes).not(':disabled').prop('checked', isSelected);
 
@@ -868,7 +1039,7 @@
          var dt = self.s.dt;
          var ctx = self.s.ctx;
 
-         if ( ! ctx.aanFeatures.i ) {
+         if ( ! (ctx.oFeatures.bInfo || ctx.aanFeatures.i) ) {
             return;
          }
 
@@ -894,23 +1065,27 @@
                   { _: '%d '+name+'s selected', 0: '', 1: '1 '+name+' selected' },
                   num
                ) ) );
-            };
-
+            }, infoFeatures;
+            if (ctx.aanFeatures.i) {
+                infoFeatures = ctx.aanFeatures.i;
+            } else if (ctx.oClasses) {
+                infoFeatures = ['.' + ctx.oClasses.info.container];
+            }
             // Internal knowledge of DataTables to loop over all information elements
-            $.each( ctx.aanFeatures.i, function ( i, el ) {
-               var $el = $(el);
+            $.each(infoFeatures, function (i, el) {
+                var $el = $(el);
 
-               var $output  = $('<span class="select-info"/>');
-               add($output, 'row', countRows);
+                var $output = $('<span class="select-info"/>');
+                add($output, 'row', countRows);
 
-               var $existing = $el.children('span.select-info');
-               if($existing.length){
-                  $existing.remove();
-               }
+                var $existing = $el.children('span.select-info');
+                if ($existing.length) {
+                    $existing.remove();
+                }
 
-               if($output.text() !== ''){
-                  $el.append($output);
-               }
+                if ($output.text() !== '') {
+                    $el.append($output);
+                }
             });
          }
       },
