@@ -446,7 +446,7 @@
          var origClass = oCol.sClass;
 
          $.extend(oCol, oOptions);
-         this._fnMap(oCol, oOptions, "sWidth", "sWidthOrig");
+         this._fnMap(oCol, oOptions, 'sWidth', 'sWidthOrig');
 
          // Merge class from previously defined classes with this one, rather than just
          // overwriting it in the extend above
@@ -460,7 +460,7 @@
          if (oOptions.iDataSort !== undefined) {
             oCol.aDataSort = [oOptions.iDataSort];
          }
-         this._fnMap(oCol, oOptions, "aDataSort");
+         this._fnMap(oCol, oOptions, 'aDataSort');
       }
 
       /* Cache the data get and set functions for speed */
@@ -1069,7 +1069,7 @@
             if (ctx.aanFeatures.i) {
                 infoFeatures = ctx.aanFeatures.i;
             } else if (ctx.oClasses) {
-                infoFeatures = ["." + ctx.oClasses.info.container];
+                infoFeatures = ['.' + ctx.oClasses.info.container];
             }
             // Internal knowledge of DataTables to loop over all information elements
             $.each(infoFeatures, function (i, el) {
