@@ -33,6 +33,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/gyrocode/jquery-datatables-checkboxes.git"
+    "url": "git+https://github.com/gyrocode/jquery-datatables-checkboxes.git"
   }
 }
