@@ -2,7 +2,7 @@
  * jQuery DataTables Checkboxes (https://www.gyrocode.com/projects/jquery-datatables-checkboxes/)
  * Checkboxes extension for jQuery DataTables
  *
- * @version     1.2.14
+ * @version     1.3.0
  * @author      Gyrocode LLC (https://www.gyrocode.com)
  * @copyright   (c) Gyrocode LLC
  * @license     MIT
@@ -69,8 +69,15 @@
          columns: [],
          data: {},
          dataDisabled: {},
-         ignoreSelect: false
+         ignoreSelect: false,
+         infoEls: []
       };
+
+      // Determine whether DataTables v2 is being used
+      this.s.isDataTablesV2 = DataTable.versionCheck('2');
+
+      // Determine whether DataTables v1 is being used
+      this.s.isDataTablesV1 = DataTable.versionCheck('1') && !this.s.isDataTablesV2;
 
       // Get settings object
       this.s.ctx = this.s.dt.settings()[0];
@@ -126,28 +133,23 @@
                // OPTIONS
                //
 
-               var colOptions = {
-                  'searchable': false,
-                  'orderable': false
-               };
+               ctx.aoColumns[i].bSortable = ctx.aoColumns[i].orderable = false;
+               ctx.aoColumns[i].bSearchable = ctx.aoColumns[i].searchable = false;
 
                if(ctx.aoColumns[i].sClass === ''){
-                  colOptions['className'] = 'dt-checkboxes-cell';
+                  ctx.aoColumns[i].sClass = 'dt-checkboxes-cell';
                } else {
-                  colOptions['className'] = ctx.aoColumns[i].sClass + ' dt-checkboxes-cell';
+                  ctx.aoColumns[i].sClass = ctx.aoColumns[i].sClass + ' dt-checkboxes-cell';
                }
 
                if(ctx.aoColumns[i].sWidthOrig === null){
-                  colOptions['width'] = '1%';
+                  ctx.aoColumns[i].width = '1%';
+                  ctx.aoColumns[i].sWidthOrig = ctx.aoColumns[i].width;
                }
 
                if(ctx.aoColumns[i].mRender === null){
-                  colOptions['render'] = function(){
-                     return '<input type="checkbox" class="dt-checkboxes" autocomplete="off">';
-                  };
+                  self._fnColumnOptionsRender(ctx, i);
                }
-
-               DataTable.ext.internal._fnColumnOptions(ctx, i, colOptions);
 
 
                // WORKAROUND: Remove "sorting" class
@@ -157,13 +159,17 @@
                $colHeader.off('.dt');
 
                // If table has data source other than Ajax
-               if(ctx.sAjaxSource === null){
+               if(
+                  (self.s.isDataTablesV1 && ctx.sAjaxSource === null)
+                  || ctx.ajax === null
+
+               ){
                   // WORKAROUND: Invalidate column data
                   var cells = dt.cells('tr', i);
                   cells.invalidate('data');
 
                   // WORKAROUND: Add required class to existing cells
-                  $(cells.nodes()).addClass(colOptions['className']);
+                  $(cells.nodes()).addClass(ctx.aoColumns[i].sClass);
                }
 
 
@@ -264,6 +270,18 @@
                   $table.on('draw.dt.dtCheckboxes select.dt.dtCheckboxes deselect.dt.dtCheckboxes', function(){
                      self.showInfoSelected();
                   });
+
+                  if (self.s.isDataTablesV2) {
+                     // Update the table information element with selected item summary
+                     $table.on('info.dt.dtCheckboxes', function (e, ctx, node) {
+                        // Store the info node for updating on select / deselect
+                        if (!ctx.checkboxes.s.infoEls.includes(node)) {
+                           ctx.checkboxes.s.infoEls.push(node);
+                        }
+
+                        self.showInfoSelected();
+                     });
+                  }
                }
             }
 
@@ -344,6 +362,32 @@
                self.onDataTablesDestroy(e, settings);
             });
          }
+      },
+
+      // Apply render options for a column
+      _fnColumnOptionsRender: function (ctx, i){
+         var self = this;
+
+         var _fnGetObjectDataFn = self.s.isDataTablesV1
+            ? DataTable.ext.internal._fnGetObjectDataFn
+            : DataTable.util.get;
+
+         ctx.aoColumns[i].mRender = ctx.aoColumns[i].render = function(){
+            return '<input type="checkbox" class="dt-checkboxes" autocomplete="off">';
+         };
+
+         ctx.aoColumns[i]._render = _fnGetObjectDataFn(ctx.aoColumns[i].mRender);
+
+         var mDataSrc = ctx.aoColumns[i].mData;
+         var mData = _fnGetObjectDataFn(mDataSrc);
+
+         ctx.aoColumns[i].fnGetData = function (rowData, type, meta) {
+            var innerData = mData(rowData, type, undefined, meta);
+
+            return ctx.aoColumns[i]._render && type
+               ? ctx.aoColumns[i]._render(innerData, type, rowData, meta)
+               : innerData;
+         };
       },
 
       // Handles DataTables initialization event
@@ -563,7 +607,7 @@
          var self = this;
          var ctx = self.s.ctx;
 
-         var cellNodes = cells.nodes();
+         var cellNodes = cells.nodes ? cells.nodes() : [ cells.node() ];
          if(cellNodes.length){
             $('input.dt-checkboxes', cellNodes).not(':disabled').prop('checked', isSelected);
 
@@ -582,7 +626,7 @@
 
          self.updateStateCheckboxes({ page: 'all', search: 'none' });
 
-         // If FixedColumns extension is enabled
+         // If FixedColumns v3 extension is enabled
          if(ctx._oFixedColumns){
             // Use delay to let FixedColumns construct the header
             // before we update the "Select all" checkbox
@@ -641,7 +685,7 @@
          // Get cell
          var $cell = $(ctrl).closest('td');
 
-         // If cell is in a fixed column using FixedColumns extension
+         // If cell is in a fixed column using FixedColumns v3 extension
          if($cell.parents('.DTFC_Cloned').length){
             cellSelector = dt.fixedColumns().cellIndex($cell);
 
@@ -721,7 +765,7 @@
          var colIdx = null;
          var $th = $(ctrl).closest('th');
 
-         // If column is fixed using FixedColumns extension
+         // If column is fixed using FixedColumns v3 extension
          if($th.parents('.DTFC_Cloned').length){
             var cellIdx = dt.fixedColumns().cellIndex($th);
             colIdx = cellIdx.column;
@@ -868,7 +912,7 @@
          var dt = self.s.dt;
          var ctx = self.s.ctx;
 
-         if ( ! ctx.aanFeatures.i ) {
+         if (!ctx.oFeatures.bInfo) {
             return;
          }
 
@@ -896,8 +940,12 @@
                ) ) );
             };
 
+            var infoEls = (ctx.checkboxes.s.isDataTablesV1)
+               ? ctx.aanFeatures.i
+               : ctx.checkboxes.s.infoEls;
+
             // Internal knowledge of DataTables to loop over all information elements
-            $.each( ctx.aanFeatures.i, function ( i, el ) {
+            $.each(infoEls, function ( i, el ) {
                var $el = $(el);
 
                var $output  = $('<span class="select-info"/>');
@@ -939,7 +987,7 @@
          var dt = self.s.dt;
          var ctx = self.s.ctx;
 
-         // If FixedColumns extension is available
+         // If FixedColumns v3 extension is available
          if(ctx._oFixedColumns){
             return dt.fixedColumns().cellIndex(cell);
 
@@ -967,14 +1015,14 @@
          return colIdx;
       },
 
-      // Updates fixed column if FixedColumns extension is enabled
+      // Updates fixed column if FixedColumns v3 extension is enabled
       // and given column is inside a fixed column
       updateFixedColumn: function(colIdx){
          var self = this;
          var dt = self.s.dt;
          var ctx = self.s.ctx;
 
-         // If FixedColumns extension is enabled
+         // If FixedColumns v3 extension is enabled
          if(ctx._oFixedColumns){
             var leftCols = ctx._oFixedColumns.s.iLeftColumns;
             var rightCols = ctx.aoColumns.length - ctx._oFixedColumns.s.iRightColumns - 1;
@@ -1274,8 +1322,7 @@
     * @name Checkboxes.version
     * @static
     */
-   Checkboxes.version = '1.2.14';
-
+   Checkboxes.version = '1.3.0';
 
 
    $.fn.DataTable.Checkboxes = Checkboxes;
